@@ -22,7 +22,7 @@ const Banner = () => {
       '▄▄█  █  █▀█ █▀▄ ▄▄█ ██▄ ██▄ █▄▀'
    ]
 
-   const footer = 'GitHub: https://github.com/Novi6182'
+   const footer = 'GitHub: https://github.com/Rezyganteng1326-debug'
 
    const terminalWidth = process.stdout?.columns || 80
 
