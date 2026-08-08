@@ -33,8 +33,8 @@ export default {
       }
 
       // Validasi
-      if (count > 20) {
-         return m.reply('Maksimal 20 pesan sekali jalan.')
+      if (count > 1000) {
+         return m.reply('Maksimal 1000 pesan sekali jalan.')
       }
       if (count < 1) {
          return m.reply('Jumlah minimal 1.')
@@ -49,7 +49,7 @@ export default {
       try {
          for (let i = 0; i < count; i++) {
             await sock.sendMessage(target, { text: msg })
-            await new Promise(resolve => setTimeout(resolve, 3000))
+            await new Promise(resolve => setTimeout(resolve, 1000))
          }
          await m.reply(`Berhasil kirim ${count} pesan!`)
       } catch (e) {
