@@ -29,7 +29,17 @@ export default {
 
          if (count > 30) return m.reply('⚠️ Maks 30 pesan.')
          if (count < 1) return m.reply('⚠️ Min 1 pesan.')
-         if (!msg) return m.reply(`⚠️ Format: ${isPrefix}spam 3|Halo`)
+         if (!msg) {
+   return m.reply(
+      `⚠️ *Format Salah!*\n\n` +
+      `📌 *Kirim ke chat ini:*\n` +
+      `${isPrefix}spam 3|Halo\n\n` +
+      `📌 *Kirim ke nomor lain:*\n` +
+      `${isPrefix}spam 6281234567890|3|Halo\n\n` +
+      `📌 *Contoh:*\n` +
+      `${isPrefix}spam 5|Assalamualaikum`
+   )
+         }
 
          await m.reply(`⏳ Mengirim ${count} pesan...`)
 
