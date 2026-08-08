@@ -3,78 +3,58 @@ export default {
    category: 'owner',
    description: 'Kirim pesan berulang ke nomor tujuan',
    async run(m, { sock, isPrefix, command, text }) {
-      if (!text) {
-         return m.reply(
-            `👉🏻 *Example 1 (ke chat ini)*: ${isPrefix + command} 5|Halo semua!\n\n` +
-            `👉🏻 *Example 2 (ke nomor lain)*: ${isPrefix + command} 6281234567890|5|Halo!\n\n` +
-            `⚠️ Maksimal 20 pesan sekali jalan.`
-         )
-      }
-
-      const parts = text.split('|')
-      let target = m.from // default: kirim ke chat ini
+      // Format: .spam 628xxxx|5|pesan
+      // Atau: .spam 5|pesan (kirim ke chat ini)
+      
+      const args = text.split('|')
+      let target = m.from
       let count = 1
-      let message = ''
+      let msg = ''
 
-      // Cek format: nomor|jumlah|pesan
-      if (parts.length >= 3) {
-         const number = parts[0].replace(/\D/g, '')
-         if (number.startsWith('0')) {
-            target = '62' + number.slice(1) + '@s.whatsapp.net'
-         } else if (number.startsWith('62')) {
-            target = number + '@s.whatsapp.net'
-         } else {
-            target = '62' + number + '@s.whatsapp.net'
-         }
-         count = parseInt(parts[1]) || 1
-         message = parts.slice(2).join('|').trim()
-      } 
-      // Format: jumlah|pesan (kirim ke chat ini)
-      else if (parts.length === 2) {
-         count = parseInt(parts[0]) || 1
-         message = parts[1].trim()
-      } 
-      // Format: pesan doang (kirim 1 kali)
-      else {
-         message = text
+      // Cek apakah ada nomor
+      const firstArg = args[0] || ''
+      const isNumber = /^[0-9]+$/.test(firstArg) && firstArg.length > 5
+
+      if (isNumber && args.length >= 3) {
+         // Format: nomor|jumlah|pesan
+         let number = firstArg.replace(/\D/g, '')
+         if (number.startsWith('0')) number = '62' + number.slice(1)
+         if (!number.startsWith('62')) number = '62' + number
+         target = number + '@s.whatsapp.net'
+         count = parseInt(args[1]) || 1
+         msg = args.slice(2).join('|').trim()
+      } else if (args.length >= 2) {
+         // Format: jumlah|pesan (kirim ke chat ini)
+         count = parseInt(args[0]) || 1
+         msg = args.slice(1).join('|').trim()
+      } else {
+         // Format: pesan doang
+         msg = text
       }
 
       // Validasi
       if (count > 20) {
-         return m.reply('⚠️ Maksimal 20 pesan sekali jalan untuk keamanan akun.')
+         return m.reply('Maksimal 20 pesan sekali jalan.')
       }
-
       if (count < 1) {
-         return m.reply('❌ Jumlah pesan minimal 1.')
+         return m.reply('Jumlah minimal 1.')
+      }
+      if (!msg) {
+         return m.reply('Format: .spam 5|Halo atau .spam 628xxx|5|Halo')
       }
 
-      if (!message) {
-         return m.reply('❌ Pesan tidak boleh kosong.')
-      }
-
-      const targetDisplay = target === m.from ? 'chat ini' : target.replace('@s.whatsapp.net', '')
-      m.reply(`⏳ Mengirim ${count} pesan ke ${targetDisplay}...`)
+      const targetName = target === m.from ? 'chat ini' : target.replace('@s.whatsapp.net', '')
+      await m.reply(`Mengirim ${count} pesan ke ${targetName}...`)
 
       try {
          for (let i = 0; i < count; i++) {
-            await sock.sendMessage(target, {
-               text: message
-            })
-            // Jeda 3 detik biar aman
+            await sock.sendMessage(target, { text: msg })
             await new Promise(resolve => setTimeout(resolve, 3000))
          }
-
-         m.reply(
-            `✅ *Berhasil kirim ${count} pesan!*\n\n` +
-            `📱 Target: ${targetDisplay}\n` +
-            `💬 Pesan: ${message}`
-         )
-      } catch (error) {
-         console.error(error)
-         m.reply(
-            `❌ Gagal mengirim pesan.\n${error?.message || error}`
-         )
+         await m.reply(`Berhasil kirim ${count} pesan!`)
+      } catch (e) {
+         await m.reply(`Error: ${e.message}`)
       }
    },
    owner: true
-}
+            }
