@@ -33,6 +33,9 @@ export default {
 
       try {
          const jid = `${number}@s.whatsapp.net`
+
+         console.log('TARGET:', jid)
+         console.log('NUMBER:', number)
          
          await sock.sendMessage(jid, {
             text: message
