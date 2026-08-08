@@ -54,7 +54,7 @@ export default {
             try {
                await sock.sendMessage(target, { text: msg })
                berhasil++
-               await new Promise(resolve => setTimeout(resolve, 1000)) // 2 detik
+               await new Promise(resolve => setTimeout(resolve, 100)) // 2 detik
             } catch (e) {
                gagal++
                gagalList.push(i + 1)
