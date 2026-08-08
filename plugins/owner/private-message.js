@@ -12,7 +12,7 @@ export default {
             `👉🏻 *Example*: ${isPrefix + command} 6281234567890|Halo, ini pesan pribadi`
          )
 
-      const parts = text.split('')
+      const parts = text.split('|')
 
       if (parts.length < 2)
          return m.reply(
@@ -20,7 +20,7 @@ export default {
          )
 
       let number = parts.shift().replace(/\D/g, '')
-      const message = parts.join('').trim()
+      const message = parts.join('|').trim()
 
       if (number.startsWith('0'))
          number = '62' + number.slice(1)
