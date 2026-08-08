@@ -1,6 +1,6 @@
 export default {
    command: ['pm'],
-   category: 'owner',
+   category: 'member,owner',
    async run(m, {
       sock,
       isPrefix,
@@ -32,15 +32,8 @@ export default {
          return m.reply('❌ Pesan tidak boleh kosong.')
 
       try {
-         const check = await sock.onWhatsApp(number)
-
-         if (!check?.[0]?.exists)
-            return m.reply(
-               `❌ Nomor ${number} tidak terdeteksi sebagai akun WhatsApp.`
-            )
-
-         const jid = check[0].jid || `${number}@s.whatsapp.net`
-
+         const jid = `${number}@s.whatsapp.net`
+         
          await sock.sendMessage(jid, {
             text: message
          })
