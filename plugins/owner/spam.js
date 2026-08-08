@@ -1,7 +1,7 @@
 export default {
    command: ['spam', 'spammsg'],
    category: 'owner',
-   description: 'Kirim pesan berulang (debug mode)',
+   description: 'Kirim pesan berulang (bisa ke luar kontak)',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          const args = text.split('|')
@@ -19,6 +19,7 @@ export default {
             target = number + '@s.whatsapp.net'
             count = parseInt(args[1]) || 1
             msg = args.slice(2).join('|').trim()
+            await m.reply(`📤 Target: ${number}`)
          } else if (args.length >= 2) {
             count = parseInt(args[0]) || 1
             msg = args.slice(1).join('|').trim()
@@ -26,33 +27,25 @@ export default {
             msg = text
          }
 
-         if (count > 30) return m.reply('Maks 30 pesan.')
-         if (count < 1) return m.reply('Min 1 pesan.')
-         if (!msg) return m.reply('Format: .spam 3|Halo')
+         if (count > 30) return m.reply('⚠️ Maks 30 pesan.')
+         if (count < 1) return m.reply('⚠️ Min 1 pesan.')
+         if (!msg) return m.reply(`⚠️ Format: ${isPrefix}spam 3|Halo`)
 
-         // DEBUG: tampilkan info sebelum kirim
-         await m.reply(
-            `📋 *DEBUG INFO*\n` +
-            `Target: ${target}\n` +
-            `Jumlah: ${count}\n` +
-            `Pesan: ${msg}\n\n` +
-            `⏳ Mulai mengirim...`
-         )
+         await m.reply(`⏳ Mengirim ${count} pesan...`)
 
          for (let i = 0; i < count; i++) {
-            await sock.sendMessage(target, { text: msg })
+            // KIRIM PAKAI MENTIONS (biar dianggap dari kontak)
+            await sock.sendMessage(target, { 
+               text: msg,
+               mentions: [m.sender] // Mention pengirim biar WA anggap personal
+            })
             await new Promise(resolve => setTimeout(resolve, 3000))
          }
 
          await m.reply(`✅ Selesai kirim ${count} pesan!`)
 
       } catch (error) {
-         // Tampilkan error detail
-         await m.reply(
-            `❌ *ERROR DETAIL*\n\n` +
-            `Message: ${error.message}\n` +
-            `Stack: ${error.stack?.slice(0, 200) || 'Tidak ada'}`
-         )
+         await m.reply(`❌ Error: ${error.message}`)
          console.error(error)
       }
    },
