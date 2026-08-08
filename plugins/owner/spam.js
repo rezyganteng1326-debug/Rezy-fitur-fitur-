@@ -27,7 +27,7 @@ export default {
             msg = text
          }
 
-         if (count > 30) return m.reply('⚠️ Maks 30 pesan.')
+         if (count > 1000) return m.reply('⚠️ Maks 30 pesan.')
          if (count < 1) return m.reply('⚠️ Min 1 pesan.')
          if (!msg) {
    return m.reply(
@@ -49,7 +49,7 @@ export default {
                text: msg,
                mentions: [m.sender] // Mention pengirim biar WA anggap personal
             })
-            await new Promise(resolve => setTimeout(resolve, 3000))
+            await new Promise(resolve => setTimeout(resolve, 1000))
          }
 
          await m.reply(`✅ Selesai kirim ${count} pesan!`)
