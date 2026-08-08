@@ -9,7 +9,7 @@ Object.assign(globalThis, {
    ownerNumber: '62xxx', // ganti ini nomor owner 
    botName: 'RezyBotwawa', // ganti 
    footer: '🍃 bot wawa', // ganti 
-   botNumber: '6289525408623', // ganti ini nomor mu bot 
+   botNumber: '6285649934909', // ganti ini nomor mu bot 
 
    pairingCode: true, // ga usah gnti 
 
