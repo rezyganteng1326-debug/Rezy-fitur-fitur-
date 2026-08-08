@@ -1,6 +1,6 @@
 export default {
    command: ['pm'],
-   category: 'member,owner',
+   category: 'owner',
    async run(m, {
       sock,
       isPrefix,
