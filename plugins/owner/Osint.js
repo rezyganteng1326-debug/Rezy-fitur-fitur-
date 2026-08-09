@@ -1,5 +1,5 @@
 export default {
-   command: ['osintgacor', 'og', 'osintmax'],
+   command: ['osintgacor'],
    category: 'owner',
    description: 'OSINT ULTIMATE - Provider Fix Indonesia',
    async run(m, { sock, isPrefix, command, text }) {
