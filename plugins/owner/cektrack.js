@@ -1,7 +1,7 @@
 export default {
    command: ['ceklink', 'cl'],
    category: 'owner',
-   description: 'Cek hasil auto tracking',
+   description: 'Cek hasil tracking',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (!text) {
@@ -24,15 +24,15 @@ export default {
          }
 
          const clicks = data.clicks || []
-         let result = `📊 *HASIL AUTO TRACKING*\n\n`
+         let result = `📊 *HASIL TRACKING*\n\n`
          result += `🔗 Kode: ${code}\n`
          result += `📌 Title: ${data.title}\n`
          result += `📅 Dibuat: ${new Date(data.created).toLocaleString('id-ID')}\n`
          result += `🖱️ Total Klik: ${clicks.length}\n\n`
 
          if (clicks.length === 0) {
-            result += `📭 Belum ada yang klik link ini.\n`
-            result += `📌 Kirim link ke target.`
+            result += `📭 Belum ada yang reply "udah" ke bot.\n`
+            result += `📌 Kirim link ke target, lalu target reply "udah" ke bot.`
          } else {
             const recent = clicks.slice(-5).reverse()
             result += `📋 *${recent.length} Klik Terakhir:*\n`
@@ -46,7 +46,6 @@ export default {
                if (click.time) result += `   🕐 Waktu: ${click.time}\n`
             }
 
-            // Statistik
             const devices = {}
             const browsers = {}
             for (const c of clicks) {
@@ -75,4 +74,4 @@ export default {
       }
    },
    owner: true
-      }
+}
