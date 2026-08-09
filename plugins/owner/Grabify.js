@@ -67,18 +67,24 @@ export default {
             return m.reply('⚠️ URL harus dimulai dengan http:// atau https://')
          }
 
-         await m.reply(`⏳ Membuat link tracking...`)
+         const response = await fetch(apiUrl, {
+   method: 'POST',
+   headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+   },
+   body: JSON.stringify(payload)
+})
 
-         // === PANGGIL API GRABIFY ===
-         const apiUrl = 'https://grabify.link/api/url/create'
-         const payload = {
-            url: url,
-            title: title,
-            private: false,
-            password: '',
-            campaign: 'whatsapp_bot'
-         }
-
+// Cek response sebelum parse JSON
+const text = await response.text()
+let data
+try {
+   data = JSON.parse(text)
+} catch (e) {
+   console.error('Response text:', text.slice(0, 500))
+   return m.reply(`❌ API Grabify error. Coba lagi nanti.\n\n${text.slice(0, 200)}`)
+}
          const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -184,8 +190,20 @@ async function trackLink(m, code) {
    try {
       // === PANGGIL API GRABIFY UNTUK CEK DATA ===
       const apiUrl = `https://grabify.link/api/url/info?shortcode=${code}`
-      const response = await fetch(apiUrl)
-      const data = await response.json()
+      const response = await fetch(apiUrl, {
+   headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+   }
+})
+
+const text = await response.text()
+let data
+try {
+   data = JSON.parse(text)
+} catch (e) {
+   console.error('Response text:', text.slice(0, 500))
+   return m.reply(`❌ API Grabify error. Coba lagi nanti.\n\n${text.slice(0, 200)}`)
+}
 
       if (!data || data.error) {
          return m.reply(`❌ Gagal mengambil data.\nError: ${data?.error || 'Unknown'}`)
