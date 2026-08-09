@@ -1,7 +1,7 @@
 export default {
    command: ['osintgacor', 'og', 'osintmax'],
    category: 'owner',
-   description: 'OSINT ULTIMATE - Fix Telegram',
+   description: 'OSINT ULTIMATE - Auto Cek Telegram',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (!text) {
@@ -9,7 +9,7 @@ export default {
                `🔥 *OSINT ULTIMATE - PALING GACOR!*\n\n` +
                `📌 ${isPrefix}osintgacor 6281234567890\n\n` +
                `📊 *Data yang didapat:*\n` +
-               `✅ WhatsApp\n✅ Telegram (Fix)\n✅ Truecaller\n✅ GetContact\n✅ Provider SIM\n✅ Lokasi & Koordinat\n✅ Media Sosial\n✅ Email & Username\n✅ Leak Database`
+               `✅ WhatsApp\n✅ Telegram (Auto Cek)\n✅ Truecaller\n✅ GetContact\n✅ Provider SIM\n✅ Media Sosial\n✅ Leak Database`
             )
          }
 
@@ -25,7 +25,7 @@ export default {
          result += `🕐 *Waktu:* ${new Date().toLocaleString('id-ID')}\n\n`
 
          // ============================================================
-         // SEKSI 1: WHATSAPP & TELEGRAM (FIX)
+         // SEKSI 1: WHATSAPP & TELEGRAM
          // ============================================================
          result += `╭─❑ *MESSENGER*\n`
          
@@ -41,20 +41,21 @@ export default {
             result += `│ ⚠️ WhatsApp: Gagal cek\n`
          }
 
-         // Telegram (Fix: deteksi lebih akurat)
+         // Telegram (Auto Cek via API)
          try {
-            // Cek via web telegram (lebih akurat)
-            const tgRes = await fetch(`https://t.me/${number}`, {
-               headers: { 'User-Agent': 'Mozilla/5.0' }
-            })
-            const tgText = await tgRes.text()
-            // Cek apakah ada konten profil (bukan cuma username)
-            const isTG = tgText.includes('tgme_page_photo') || 
-                         tgText.includes('tgme_page_title') ||
-                         tgText.includes('tgme_page_description')
-            result += `│ ${isTG ? '✅' : '❌'} Telegram: ${isTG ? 'Ada akun' : 'Tidak ditemukan'}\n`
+            const tgToken = process.env.TELEGRAM_BOT_TOKEN
+            if (tgToken) {
+               const tgRes = await fetch(`https://api.telegram.org/bot${tgToken}/getChat?chat_id=${number}`, {
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
+               })
+               const tgData = await tgRes.json()
+               const isTG = tgData && tgData.ok
+               result += `│ ${isTG ? '✅' : '❌'} Telegram: ${isTG ? 'Ada akun' : 'Tidak ditemukan'}\n`
+            } else {
+               result += `│ ⚠️ Telegram: Token tidak ditemukan di .env\n`
+            }
          } catch (e) {
-            result += `│ ⚠️ Telegram: Gagal cek\n`
+            result += `│ ⚠️ Telegram: Gagal cek (${e.message})\n`
          }
 
          result += `╰───────────────────\n\n`
@@ -87,21 +88,6 @@ export default {
                const gcData = await gcRes.json()
                if (gcData && gcData.name) {
                   result += `│ 👤 GetContact: ${gcData.name}\n`
-                  identityFound = true
-               }
-            } catch (e) {}
-         }
-
-         // Google
-         if (!identityFound) {
-            try {
-               const gRes = await fetch(`https://www.google.com/search?q=${fullNumber}`, {
-                  headers: { 'User-Agent': 'Mozilla/5.0' }
-               })
-               const gText = await gRes.text()
-               const gMatch = gText.match(/<h3[^>]*>([^<]+)<\/h3>/)
-               if (gMatch && gMatch[1].length < 100) {
-                  result += `│ 👤 Google: ${gMatch[1]}\n`
                   identityFound = true
                }
             } catch (e) {}
@@ -153,21 +139,6 @@ export default {
          }
          const emoji = emojiMap[provider] || '❌'
          result += `│ ${emoji} Provider: ${provider}\n`
-
-         // Coba ambil lokasi
-         try {
-            const ipRes = await fetch(`http://ip-api.com/json/${number}?fields=status,country,regionName,city,lat,lon,timezone`)
-            const ipData = await ipRes.json()
-            if (ipData && ipData.status === 'success') {
-               if (ipData.country) result += `│ 🌍 Negara: ${ipData.country}\n`
-               if (ipData.regionName) result += `│ 🗺️ Provinsi: ${ipData.regionName}\n`
-               if (ipData.city) result += `│ 🏙️ Kota: ${ipData.city}\n`
-               if (ipData.lat && ipData.lon) {
-                  result += `│ 🗺️ Koordinat: ${ipData.lat}, ${ipData.lon}\n`
-               }
-            }
-         } catch (e) {}
-
          result += `╰───────────────────\n\n`
 
          // ============================================================
@@ -200,31 +171,7 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 5: EMAIL & USERNAME
-         // ============================================================
-         result += `╭─❑ *EMAIL & USERNAME*\n`
-         let emailFound = false
-
-         try {
-            const ghRes = await fetch(`https://api.github.com/search/users?q=${number}`, {
-               headers: { 'User-Agent': 'Mozilla/5.0' }
-            })
-            const ghData = await ghRes.json()
-            if (ghData && ghData.total_count > 0) {
-               for (const user of ghData.items.slice(0, 3)) {
-                  result += `│ 🐙 GitHub: ${user.login}\n`
-                  emailFound = true
-               }
-            }
-         } catch (e) {}
-
-         if (!emailFound) {
-            result += `│ ❌ Email/username tidak ditemukan\n`
-         }
-         result += `╰───────────────────\n\n`
-
-         // ============================================================
-         // SEKSI 6: KEBOCORAN DATA
+         // SEKSI 5: LEAK
          // ============================================================
          result += `╭─❑ *KEBOCORAN DATA (LEAK)*\n`
          try {
@@ -253,7 +200,7 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 7: INFO TAMBAHAN
+         // SEKSI 6: INFO TAMBAHAN
          // ============================================================
          result += `╭─❑ *INFO TAMBAHAN*\n`
          result += `│ 🕐 Waktu: ${new Date().toLocaleString('id-ID')}\n`
@@ -271,4 +218,4 @@ export default {
       }
    },
    owner: true
-}
+      }
