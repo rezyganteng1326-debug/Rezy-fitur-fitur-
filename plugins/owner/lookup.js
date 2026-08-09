@@ -33,7 +33,7 @@ export default {
 
          // === PANGGIL APIFY API ===
          const client = new ApifyClient({
-            token: "apify_api_zqVEsaVkXZv2oYgbQBdHOUkJCAir6s3CtPhh"
+            token: 'apify_api_zqVEsaVkXZv2oYgbQBdHOUkJCAir6s3CtPhh'
          })
 
          const input = {
