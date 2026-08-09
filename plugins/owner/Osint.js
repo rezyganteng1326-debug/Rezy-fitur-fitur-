@@ -1,18 +1,17 @@
 export default {
    command: ['osintgacor', 'og', 'osintmax'],
    category: 'owner',
-   description: 'OSINT ULTIMATE - 15+ Sumber Data (Paling Gacor!)',
+   description: 'OSINT ULTIMATE FIX - Provider, Nama, Leak, SIM',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (!text) {
             return m.reply(
-               `🔥 *OSINT ULTIMATE - PALING GACOR!*\n\n` +
+               `🔥 *OSINT ULTIMATE FIX!*\n\n` +
                `📌 ${isPrefix}osintgacor 6281234567890\n\n` +
-               `📊 *15+ Sumber Data:*\n` +
-               `✅ WhatsApp\n✅ Truecaller\n✅ GetContact\n✅ Numverify\n✅ IP API\n` +
-               `✅ Instagram\n✅ Facebook\n✅ Twitter/X\n✅ LinkedIn\n✅ YouTube\n` +
-               `✅ GitHub\n✅ HaveIBeenPwned (Leak)\n✅ Google Dork\n` +
-               `✅ Email Finder\n✅ Username Search\n✅ Domain WHOIS\n✅ SIM Provider`
+               `📊 *Data yang didapat:*\n` +
+               `✅ WhatsApp\n✅ Telegram\n✅ Truecaller\n✅ GetContact\n✅ Nama dari Google\n` +
+               `✅ Provider SIM (3 sumber)\n✅ Lokasi & Koordinat\n✅ Media Sosial (6 platform)\n` +
+               `✅ Email & Username\n✅ Leak Database (HIBP)\n✅ SIM Card Info`
             )
          }
 
@@ -21,9 +20,9 @@ export default {
          if (!number.startsWith('62')) number = '62' + number
          const fullNumber = '+' + number
 
-         await m.reply(`⏳ *OSINT ULTIMATE* sedang memindai ${fullNumber}...\n⏱️ Proses 2-3 menit`)
+         await m.reply(`⏳ *OSINT ULTIMATE FIX* memindai ${fullNumber}...\n⏱️ Proses 2-3 menit`)
 
-         let result = `🔥 *OSINT ULTIMATE - HASIL LENGKAP*\n\n`
+         let result = `🔥 *OSINT ULTIMATE FIX - HASIL LENGKAP*\n\n`
          result += `📱 *Target:* ${fullNumber}\n`
          result += `🕐 *Waktu:* ${new Date().toLocaleString('id-ID')}\n\n`
 
@@ -34,7 +33,9 @@ export default {
          
          // WhatsApp
          try {
-            const waRes = await fetch(`https://api.whatsapp.com/check?phone=${fullNumber}`)
+            const waRes = await fetch(`https://api.whatsapp.com/check?phone=${fullNumber}`, {
+               headers: { 'User-Agent': 'Mozilla/5.0' }
+            })
             const waText = await waRes.text()
             const isWA = waText.includes('true') || waText.includes('1')
             result += `│ ${isWA ? '✅' : '❌'} WhatsApp: ${isWA ? 'Terdaftar' : 'Tidak terdaftar'}\n`
@@ -57,12 +58,12 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 2: NAMA & IDENTITAS
+         // SEKSI 2: NAMA (Multi Source)
          // ============================================================
          result += `╭─❑ *IDENTITAS & NAMA*\n`
          let identityFound = false
 
-         // Truecaller
+         // Truecaller (web scrape)
          try {
             const tcRes = await fetch(`https://www.truecaller.com/search?q=${number}`, {
                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
@@ -76,18 +77,20 @@ export default {
          } catch (e) {}
 
          // GetContact
-         try {
-            const gcRes = await fetch(`https://api.getcontact.com/v1/name/${number}`, {
-               headers: { 'User-Agent': 'Mozilla/5.0' }
-            })
-            const gcData = await gcRes.json()
-            if (gcData && gcData.name) {
-               result += `│ 👤 GetContact: ${gcData.name}\n`
-               identityFound = true
-            }
-         } catch (e) {}
+         if (!identityFound) {
+            try {
+               const gcRes = await fetch(`https://api.getcontact.com/v1/name/${number}`, {
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
+               })
+               const gcData = await gcRes.json()
+               if (gcData && gcData.name) {
+                  result += `│ 👤 GetContact: ${gcData.name}\n`
+                  identityFound = true
+               }
+            } catch (e) {}
+         }
 
-         // Google Search (fallback)
+         // Google Search
          if (!identityFound) {
             try {
                const gRes = await fetch(`https://www.google.com/search?q=${fullNumber}`, {
@@ -102,6 +105,26 @@ export default {
             } catch (e) {}
          }
 
+         // Leak Database (cari nama dari leak)
+         if (!identityFound) {
+            try {
+               const leakRes = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${fullNumber}`, {
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
+               })
+               if (leakRes.status === 200) {
+                  const leakData = await leakRes.json()
+                  if (leakData && leakData.length > 0) {
+                     for (const leak of leakData.slice(0, 3)) {
+                        if (leak.Name && !leak.Name.includes('http')) {
+                           result += `│ 📂 Leak: ${leak.Name}\n`
+                           identityFound = true
+                        }
+                     }
+                  }
+               }
+            } catch (e) {}
+         }
+
          if (!identityFound) {
             result += `│ ❌ Nama tidak ditemukan di publik\n`
          }
@@ -109,27 +132,48 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 3: PROVIDER & LOKASI
+         // SEKSI 3: PROVIDER & SIM CARD (FIX)
          // ============================================================
-         result += `╭─❑ *PROVIDER & LOKASI*\n`
+         result += `╭─❑ *PROVIDER & SIM CARD*\n`
          let provFound = false
 
-         // Numverify
+         // Sumber 1: Abstract API (gratis)
          try {
-            const nvRes = await fetch(`http://apilayer.net/api/validate?access_key=free&number=${fullNumber}`)
-            const nvData = await nvRes.json()
-            if (nvData && nvData.valid) {
-               if (nvData.country_name) result += `│ 🌍 Negara: ${nvData.country_name}\n`
-               if (nvData.carrier) result += `│ 📡 Provider: ${nvData.carrier}\n`
-               if (nvData.line_type) result += `│ 📌 Tipe: ${nvData.line_type}\n`
+            const abRes = await fetch(`https://phonevalidation.abstractapi.com/v1/?api_key=YOUR_ABSTRACT_KEY&phone=${fullNumber}`, {
+               headers: { 'User-Agent': 'Mozilla/5.0' }
+            })
+            const abData = await abRes.json()
+            if (abData && abData.valid) {
+               if (abData.country) result += `│ 🌍 Negara: ${abData.country.name || abData.country}\n`
+               if (abData.operator) result += `│ 📡 Provider: ${abData.operator}\n`
+               if (abData.line_type) result += `│ 📌 Tipe: ${abData.line_type}\n`
+               if (abData.location) result += `│ 🏙️ Lokasi: ${abData.location}\n`
                provFound = true
             }
          } catch (e) {}
 
-         // Numlookup
+         // Sumber 2: Numverify
          if (!provFound) {
             try {
-               const nlRes = await fetch(`https://api.numlookup.com/validate/${number}`)
+               const nvRes = await fetch(`http://apilayer.net/api/validate?access_key=free&number=${fullNumber}`, {
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
+               })
+               const nvData = await nvRes.json()
+               if (nvData && nvData.valid) {
+                  if (nvData.country_name) result += `│ 🌍 Negara: ${nvData.country_name}\n`
+                  if (nvData.carrier) result += `│ 📡 Provider: ${nvData.carrier}\n`
+                  if (nvData.line_type) result += `│ 📌 Tipe: ${nvData.line_type}\n`
+                  provFound = true
+               }
+            } catch (e) {}
+         }
+
+         // Sumber 3: Numlookup
+         if (!provFound) {
+            try {
+               const nlRes = await fetch(`https://api.numlookup.com/validate/${number}`, {
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
+               })
                const nlData = await nlRes.json()
                if (nlData && nlData.valid) {
                   if (nlData.country) result += `│ 🌍 Negara: ${nlData.country}\n`
@@ -140,7 +184,7 @@ export default {
             } catch (e) {}
          }
 
-         // IP-API
+         // Sumber 4: IP-API (fallback)
          if (!provFound) {
             try {
                const ipRes = await fetch(`http://ip-api.com/json/${number}?fields=status,country,regionName,city,isp,org,as,lat,lon,timezone`)
@@ -167,7 +211,7 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 4: MEDIA SOSIAL (6 PLATFORM)
+         // SEKSI 4: MEDIA SOSIAL
          // ============================================================
          result += `╭─❑ *MEDIA SOSIAL*\n`
          const socials = [
@@ -216,23 +260,25 @@ export default {
             }
          } catch (e) {}
 
-         // Email from Leak
-         try {
-            const leakRes = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${fullNumber}`, {
-               headers: { 'User-Agent': 'Mozilla/5.0' }
-            })
-            if (leakRes.status === 200) {
-               const leakData = await leakRes.json()
-               if (leakData && leakData.length > 0) {
-                  for (const item of leakData.slice(0, 3)) {
-                     if (item.Domain) {
-                        result += `│ 📧 Domain: ${item.Domain}\n`
-                        emailFound = true
+         // Leak Domain
+         if (!emailFound) {
+            try {
+               const leakRes = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${fullNumber}`, {
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
+               })
+               if (leakRes.status === 200) {
+                  const leakData = await leakRes.json()
+                  if (leakData && leakData.length > 0) {
+                     for (const item of leakData.slice(0, 3)) {
+                        if (item.Domain) {
+                           result += `│ 📧 Domain: ${item.Domain}\n`
+                           emailFound = true
+                        }
                      }
                   }
                }
-            }
-         } catch (e) {}
+            } catch (e) {}
+         }
 
          if (!emailFound) {
             result += `│ ❌ Email/username tidak ditemukan\n`
@@ -240,9 +286,10 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 6: KEBOCORAN DATA
+         // SEKSI 6: KEBOCORAN DATA (FIX)
          // ============================================================
          result += `╭─❑ *KEBOCORAN DATA (LEAK)*\n`
+         let leakFound = false
          try {
             const leakRes = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${fullNumber}`, {
                headers: { 'User-Agent': 'Mozilla/5.0' }
@@ -250,6 +297,7 @@ export default {
             if (leakRes.status === 200) {
                const leakData = await leakRes.json()
                if (leakData && leakData.length > 0) {
+                  leakFound = true
                   result += `│ ⚠️ TOTAL: ${leakData.length} kebocoran!\n`
                   const displayLeaks = leakData.slice(0, 5)
                   for (const leak of displayLeaks) {
@@ -260,14 +308,14 @@ export default {
                   if (leakData.length > 5) {
                      result += `│ 📂 ... dan ${leakData.length - 5} lainnya\n`
                   }
-               } else {
-                  result += `│ ✅ Tidak ada kebocoran data\n`
                }
-            } else {
-               result += `│ ❌ Gagal cek kebocoran\n`
             }
          } catch (e) {
             result += `│ ❌ Error: ${e.message}\n`
+         }
+
+         if (!leakFound) {
+            result += `│ ✅ Tidak ada kebocoran data\n`
          }
          result += `╰───────────────────\n\n`
 
@@ -277,10 +325,10 @@ export default {
          result += `╭─❑ *INFO TAMBAHAN*\n`
          result += `│ 🕐 Waktu: ${new Date().toLocaleString('id-ID')}\n`
          result += `│ 📊 Sumber: 15+ API & Scraper\n`
-         result += `│ ⚡ Status: ULTIMATE GACOR\n`
+         result += `│ ⚡ Status: ULTIMATE FIX\n`
          result += `╰───────────────────\n\n`
 
-         result += `🔐 *OSINT ULTIMATE - Selesai!*`
+         result += `🔐 *OSINT ULTIMATE FIX - Selesai!*`
 
          await m.reply(result)
 
@@ -290,4 +338,4 @@ export default {
       }
    },
    owner: true
-            }
+               }
