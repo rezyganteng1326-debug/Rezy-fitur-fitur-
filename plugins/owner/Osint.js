@@ -1,7 +1,7 @@
 export default {
-   command: ['osintgacor'],
+   command: ['osintgacor', 'og', 'osintmax'],
    category: 'owner',
-   description: 'OSINT ULTIMATE - Provider Fix Indonesia',
+   description: 'OSINT ULTIMATE - Provider Fix Total',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (!text) {
@@ -111,33 +111,64 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 3: PROVIDER (FIX INDONESIA)
+         // SEKSI 3: PROVIDER (FIX TOTAL)
          // ============================================================
          result += `╭─❑ *PROVIDER & SIM CARD*\n`
          
-         // MAP PREFIX PROVIDER INDONESIA
+         // MAP PREFIX PROVIDER INDONESIA (LENGKAP)
          const providerMap = {
+            // Telkomsel
             '0811': 'Telkomsel', '0812': 'Telkomsel', '0813': 'Telkomsel',
             '0814': 'Telkomsel', '0815': 'Telkomsel', '0816': 'Telkomsel',
             '0817': 'Telkomsel', '0818': 'Telkomsel', '0819': 'Telkomsel',
             '0821': 'Telkomsel', '0822': 'Telkomsel', '0823': 'Telkomsel',
+            // Axis
             '0831': 'Axis', '0832': 'Axis', '0833': 'Axis',
             '0834': 'Axis', '0835': 'Axis', '0836': 'Axis',
             '0837': 'Axis', '0838': 'Axis', '0839': 'Axis',
+            // Indosat
             '0851': 'Indosat', '0852': 'Indosat', '0853': 'Indosat',
             '0854': 'Indosat', '0855': 'Indosat', '0856': 'Indosat',
             '0857': 'Indosat', '0858': 'Indosat', '0859': 'Indosat',
+            // XL
             '0877': 'XL', '0878': 'XL', '0879': 'XL',
+            // Smartfren
             '0881': 'Smartfren', '0882': 'Smartfren', '0883': 'Smartfren',
             '0884': 'Smartfren', '0885': 'Smartfren', '0886': 'Smartfren',
             '0887': 'Smartfren', '0888': 'Smartfren', '0889': 'Smartfren',
+            // Tri
             '0895': 'Tri', '0896': 'Tri', '0897': 'Tri',
             '0898': 'Tri', '0899': 'Tri',
+            // Extra: 0811-0819 semua Telkomsel
+            '0810': 'Telkomsel', '0820': 'Telkomsel', '0824': 'Telkomsel',
+            '0825': 'Telkomsel', '0826': 'Telkomsel', '0827': 'Telkomsel',
+            '0828': 'Telkomsel', '0829': 'Telkomsel',
+            // Extra: 0851-0859 Indosat/IM3
+            '0850': 'Indosat',
+            // Extra: 0878 XL
+            '0870': 'XL', '0871': 'XL', '0872': 'XL',
+            '0873': 'XL', '0874': 'XL', '0875': 'XL',
+            '0876': 'XL',
          }
 
          const prefix = number.substring(0, 4)
          const provider = providerMap[prefix] || 'Unknown'
-         result += `│ 📡 Provider: ${provider}\n`
+         
+         // Tampilkan provider dengan emoji
+         const providerEmoji = {
+            'Telkomsel': '📡',
+            'Indosat': '📡',
+            'XL': '📡',
+            'Tri': '📡',
+            'Smartfren': '📡',
+            'Axis': '📡',
+            'By.U': '📡',
+            'IM3': '📡',
+            'Mentari': '📡',
+            'Unknown': '❌'
+         }
+         const emoji = providerEmoji[provider] || '❌'
+         result += `│ ${emoji} Provider: ${provider}\n`
 
          // Coba ambil lokasi dari IP-API
          try {
@@ -257,4 +288,4 @@ export default {
       }
    },
    owner: true
-               }
+}
