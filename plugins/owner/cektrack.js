@@ -1,14 +1,14 @@
 export default {
-   command: ['cektrack', 'ct'],
+   command: ['ceklink', 'cl'],
    category: 'owner',
-   description: 'Cek hasil tracking link',
+   description: 'Cek hasil auto tracking',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (!text) {
             return m.reply(
                `⚠️ *Format Salah!*\n\n` +
-               `📌 ${isPrefix}cektrack [kode]\n` +
-               `📌 Contoh: ${isPrefix}cektrack ABC123`
+               `📌 ${isPrefix}ceklink [kode]\n` +
+               `📌 Contoh: ${isPrefix}ceklink ABC123`
             )
          }
 
@@ -19,14 +19,15 @@ export default {
             return m.reply(
                `❌ Kode ${code} tidak ditemukan.\n\n` +
                `📌 Buat link dulu pake:\n` +
-               `${isPrefix}track https://link.com|Judul`
+               `${isPrefix}autolink https://link.com|Judul`
             )
          }
 
          const clicks = data.clicks || []
-         let result = `📊 *HASIL TRACKING*\n\n`
+         let result = `📊 *HASIL AUTO TRACKING*\n\n`
          result += `🔗 Kode: ${code}\n`
          result += `📌 Title: ${data.title}\n`
+         result += `📅 Dibuat: ${new Date(data.created).toLocaleString('id-ID')}\n`
          result += `🖱️ Total Klik: ${clicks.length}\n\n`
 
          if (clicks.length === 0) {
@@ -74,4 +75,4 @@ export default {
       }
    },
    owner: true
-                 }
+      }
