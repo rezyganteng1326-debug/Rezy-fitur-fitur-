@@ -1,4 +1,4 @@
-import { loadDB, saveDB, addLink, deleteLink, getLinks, getLink } from '../lib/db.js'
+import { loadDB, saveDB, addLink, deleteLink, getLinks, getLink } from '../../lib/db.js'
 
 export default {
    command: ['grabify', 'track', 'grab'],
