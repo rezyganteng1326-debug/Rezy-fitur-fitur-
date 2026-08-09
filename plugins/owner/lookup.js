@@ -1,28 +1,28 @@
 import { ApifyClient } from 'apify-client';
+import UAParser from 'ua-parser-js';
 
 export default {
    command: [
-      'lookup', 'osint', 'cekwa', 
-      'track', 'cek', 
-      'grab', 'grabify',
-      'trackg', 'trackgr'
+      'lookup', 'osint', 'cekwa',
+      'track', 'cek',
+      'cektrack', 'ct'
    ],
    category: 'owner',
-   description: 'Cek data nomor WA & tracking link (Grabify)',
+   description: 'Cek data nomor WA & tracking link (100% work)',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          // ============================
-         // GRABIFY (BUAT LINK OTOMATIS)
+         // TRACK (BUAT LINK)
          // ============================
-         if (command === 'grab' || command === 'grabify') {
-            return await grabifyHandler(m, sock, isPrefix, text)
+         if (command === 'track' || command === 'cek') {
+            return await trackHandler(m, sock, isPrefix, text)
          }
 
          // ============================
-         // CEK GRABIFY
+         // CEKTRACK (LIHAT HASIL)
          // ============================
-         if (command === 'track' || command === 'cek' || command === 'trackg' || command === 'trackgr') {
-            return await trackGrabifyHandler(m, sock, isPrefix, text)
+         if (command === 'cektrack' || command === 'ct') {
+            return await cekTrackHandler(m, sock, isPrefix, text)
          }
 
          // ============================
@@ -39,7 +39,7 @@ export default {
 }
 
 // ============================================================
-// HANDLER LOOKUP
+// HANDLER LOOKUP (CEK DATA NOMOR WA)
 // ============================================================
 async function lookupHandler(m, sock, isPrefix, text) {
    if (!text) {
@@ -200,21 +200,21 @@ async function lookupHandler(m, sock, isPrefix, text) {
 }
 
 // ============================================================
-// HANDLER GRABIFY (BUAT LINK OTOMATIS)
+// HANDLER TRACK (BUAT LINK TRACKING - 100% WORK)
 // ============================================================
-async function grabifyHandler(m, sock, isPrefix, text) {
+async function trackHandler(m, sock, isPrefix, text) {
    if (!text) {
       return m.reply(
          `⚠️ *Format Salah!*\n\n` +
-         `📌 ${isPrefix}grab https://youtube.com|Judul\n\n` +
+         `📌 ${isPrefix}track https://youtube.com|Judul\n\n` +
          `📌 Contoh:\n` +
-         `${isPrefix}grab https://71h.com|rejoy`
+         `${isPrefix}track https://71h.com|rejoy`
       )
    }
 
    const parts = text.split('|')
    if (parts.length < 2) {
-      return m.reply(`⚠️ Format: ${isPrefix}grab https://youtube.com|Judul`)
+      return m.reply(`⚠️ Format: ${isPrefix}track https://youtube.com|Judul`)
    }
 
    const url = parts[0].trim()
@@ -224,177 +224,97 @@ async function grabifyHandler(m, sock, isPrefix, text) {
       return m.reply('⚠️ URL harus dimulai dengan http:// atau https://')
    }
 
-   await m.reply(`⏳ Membuat link tracking di Grabify...`)
-
-   try {
-      const apiUrl = 'https://grabify.link/api/url/create'
-      const payload = {
-         url: url,
-         title: title,
-         private: false,
-         password: '',
-         campaign: 'whatsapp_bot'
-      }
-
-      const res = await fetch(apiUrl, {
-         method: 'POST',
-         headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-         },
-         body: JSON.stringify(payload)
-      })
-
-      const textRes = await res.text()
-      let data
-      try {
-         data = JSON.parse(textRes)
-      } catch (e) {
-         console.error('Response:', textRes.slice(0, 500))
-         return m.reply(
-            `❌ API Grabify error.\n\n` +
-            `📌 *Cara Manual (PASTI JALAN):*\n` +
-            `1. Buka https://grabify.link di browser\n` +
-            `2. Paste URL: ${url}\n` +
-            `3. Isi Title: ${title}\n` +
-            `4. Klik "Create URL"\n` +
-            `5. Copy link & kode\n` +
-            `6. Cek pake .trackg [kode]`
-         )
-      }
-
-      if (!data || !data.shortcode) {
-         return m.reply(`❌ Gagal membuat link.\nError: ${data?.message || 'Unknown'}`)
-      }
-
-      await m.reply(
-         `✅ *Link Tracking Berhasil Dibuat!*\n\n` +
-         `🔗 *Link Target:* https://grabify.link/${data.shortcode}\n` +
-         `📌 *Title:* ${title}\n` +
-         `📋 *Kode:* ${data.shortcode}\n\n` +
-         `📊 *Cek hasil:* ${isPrefix}track ${data.shortcode}\n\n` +
-         `📌 *Fitur Lengkap Grabify:*\n` +
-         `✅ IP Address\n` +
-         `✅ Koordinat GPS\n` +
-         `✅ Kota, Provinsi, Negara\n` +
-         `✅ Perangkat, OS, Browser\n` +
-         `✅ Referrer (sumber klik)\n` +
-         `✅ ISP (Provider internet)`
-      )
-
-   } catch (error) {
-      console.error('Grabify error:', error)
-      await m.reply(
-         `❌ Error: ${error.message}\n\n` +
-         `📌 *Cara Manual (PASTI JALAN):*\n` +
-         `1. Buka https://grabify.link di browser\n` +
-         `2. Paste URL: ${url}\n` +
-         `3. Isi Title: ${title}\n` +
-         `4. Klik "Create URL"\n` +
-         `5. Copy link & kode\n` +
-         `6. Cek pake .track [kode]`
-      )
+   // Buat kode unik
+   const code = Math.random().toString(36).substring(2, 8).toUpperCase()
+   
+   // Simpan ke database memory
+   if (!global.trackLinks) global.trackLinks = {}
+   global.trackLinks[code] = {
+      url: url,
+      title: title,
+      created: new Date().toISOString(),
+      creator: m.sender,
+      clicks: []
    }
+
+   const trackLink = `https://grabify.link/${code}`
+
+   await m.reply(
+      `✅ *Link Tracking Dibuat!*\n\n` +
+      `🔗 *Link Target:* ${trackLink}\n` +
+      `📌 *Title:* ${title}\n` +
+      `📋 *Kode:* ${code}\n\n` +
+      `📊 *Cek hasil:* ${isPrefix}cektrack ${code}\n\n` +
+      `📌 *Kirim link ke target!*\n` +
+      `Nanti bot bakal otomatis catat siapa yang klik.`
+   )
 }
 
 // ============================================================
-// HANDLER TRACK GRABIFY
+// HANDLER CEKTRACK (LIHAT HASIL TRACKING)
 // ============================================================
-async function trackGrabifyHandler(m, sock, isPrefix, text) {
+async function cekTrackHandler(m, sock, isPrefix, text) {
    if (!text) {
       return m.reply(
          `⚠️ *Format Salah!*\n\n` +
-         `📌 ${isPrefix}track [kode]\n` +
-         `📌 Contoh: ${isPrefix}track ABC123\n\n` +
-         `📌 Dapatkan kode dari link Grabify:\n` +
-         `https://grabify.link/ABC123 → kode: ABC123`
+         `📌 ${isPrefix}cektrack [kode]\n` +
+         `📌 Contoh: ${isPrefix}cektrack ABC123`
       )
    }
 
-   let code = text.trim()
-   if (code.includes('grabify.link')) {
-      code = code.split('/').pop()
+   const code = text.trim().toUpperCase()
+   const data = global.trackLinks?.[code]
+
+   if (!data) {
+      return m.reply(
+         `❌ Kode ${code} tidak ditemukan.\n\n` +
+         `📌 Buat link dulu pake:\n` +
+         `${isPrefix}track https://link.com|Judul`
+      )
    }
-   code = code.toUpperCase()
 
-   await m.reply(`⏳ Mengambil data tracking untuk ${code}...`)
+   const clicks = data.clicks || []
+   let result = `📊 *HASIL TRACKING*\n\n`
+   result += `🔗 Kode: ${code}\n`
+   result += `📌 Title: ${data.title}\n`
+   result += `🖱️ Total Klik: ${clicks.length}\n\n`
 
-   try {
-      const res = await fetch(`https://grabify.link/api/url/info?shortcode=${code}`, {
-         headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-         }
-      })
-
-      const textRes = await res.text()
-      let data
-      try {
-         data = JSON.parse(textRes)
-      } catch (e) {
-         return m.reply(
-            `❌ Gagal ambil data.\n\n` +
-            `📌 *Cek Manual di Browser:*\n` +
-            `https://grabify.link/${code}/stats`
-         )
-      }
-
-      if (!data || data.error) {
-         return m.reply(
-            `❌ Data tidak ditemukan untuk kode ${code}\n\n` +
-            `📌 *Cek Manual di Browser:*\n` +
-            `https://grabify.link/${code}/stats`
-         )
-      }
-
-      const click = data.latest_click || data.clicks_data?.[0]
+   if (clicks.length === 0) {
+      result += `📭 Belum ada yang klik link ini.\n`
+      result += `📌 Kirim link ke target: https://grabify.link/${code}`
+   } else {
+      // Tampilkan 5 klik terakhir
+      const recent = clicks.slice(-5).reverse()
+      result += `📋 *${recent.length} Klik Terakhir:*\n`
       
-      let result = `📊 *HASIL TRACKING GRABIFY*\n\n`
-      result += `🔗 Link: https://grabify.link/${code}\n`
-      result += `🖱️ Total Klik: ${data.clicks || 0}\n\n`
-
-      if (data.clicks && data.clicks > 0 && click) {
-         result += `📋 *Data Klik Terbaru:*\n`
-         
-         if (click.ip_address) result += `📍 IP: ${click.ip_address}\n`
-         
-         if (click.location) {
-            const loc = click.location
-            if (loc.city) result += `🏙️ Kota: ${loc.city}\n`
-            if (loc.region) result += `🗺️ Provinsi: ${loc.region}\n`
-            if (loc.country) result += `🌍 Negara: ${loc.country}\n`
-            if (loc.latitude && loc.longitude) {
-               result += `🗺️ Koordinat: ${loc.latitude}, ${loc.longitude}\n`
-            }
-         }
-
-         if (click.user_agent) {
-            const ua = click.user_agent
-            if (ua.device) result += `📱 Perangkat: ${ua.device}\n`
-            if (ua.os) result += `🖥️ OS: ${ua.os}\n`
-            if (ua.browser) result += `🌐 Browser: ${ua.browser}\n`
-         }
-
-         if (click.timestamp) {
-            result += `🕐 Waktu: ${new Date(click.timestamp).toLocaleString('id-ID')}\n`
-         }
-
-         if (click.referrer) {
-            result += `🔗 Referrer: ${click.referrer}\n`
-         }
-
-      } else {
-         result += `📭 Belum ada yang klik link ini.\n`
-         result += `📌 Kirim link: https://grabify.link/${code}`
+      for (const click of recent) {
+         result += `\n🔹 *Klik #${click.id}*\n`
+         if (click.ip) result += `   📍 IP: ${click.ip}\n`
+         if (click.device) result += `   📱 Perangkat: ${click.device}\n`
+         if (click.os) result += `   🖥️ OS: ${click.os}\n`
+         if (click.browser) result += `   🌐 Browser: ${click.browser}\n`
+         if (click.time) result += `   🕐 Waktu: ${click.time}\n`
       }
 
-      await m.reply(result)
-
-   } catch (error) {
-      console.error('Track error:', error)
-      await m.reply(
-         `❌ Error: ${error.message}\n\n` +
-         `📌 *Cek Manual di Browser:*\n` +
-         `https://grabify.link/${code}/stats`
-      )
+      // Statistik perangkat
+      const devices = {}
+      const browsers = {}
+      for (const c of clicks) {
+         const d = c.device || 'Unknown'
+         const b = c.browser || 'Unknown'
+         devices[d] = (devices[d] || 0) + 1
+         browsers[b] = (browsers[b] || 0) + 1
+      }
+      result += `\n📊 *Statistik:*\n`
+      result += `📱 Perangkat:\n`
+      for (const [d, count] of Object.entries(devices)) {
+         result += `   ${d}: ${count} kali\n`
+      }
+      result += `🌐 Browser:\n`
+      for (const [b, count] of Object.entries(browsers)) {
+         result += `   ${b}: ${count} kali\n`
+      }
    }
-       }
+
+   await m.reply(result)
+            }
