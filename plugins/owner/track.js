@@ -1,65 +1,23 @@
 export default {
-   command: ['track', 'cek'],
+   command: ['autotrack', 'at'],
    category: 'owner',
-   description: 'Buat link tracking pake TinyURL (100% work)',
+   description: 'Aktifkan auto tracking (otomatis catat klik)',
    async run(m, { sock, isPrefix, command, text }) {
       try {
-         if (!text) {
-            return m.reply(
-               `⚠️ *Format Salah!*\n\n` +
-               `📌 ${isPrefix}track https://youtube.com|Judul\n\n` +
-               `📌 Contoh:\n` +
-               `${isPrefix}track https://71h.com|rejoy`
-            )
-         }
+         // Toggle auto tracking
+         if (!global.autoTrack) global.autoTrack = false
+         global.autoTrack = !global.autoTrack
 
-         const parts = text.split('|')
-         if (parts.length < 2) {
-            return m.reply(`⚠️ Format: ${isPrefix}track https://youtube.com|Judul`)
-         }
-
-         const url = parts[0].trim()
-         const title = parts.slice(1).join('|').trim() || 'Link'
-
-         if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            return m.reply('⚠️ URL harus dimulai dengan http:// atau https://')
-         }
-
-         // Buat kode unik
-         const code = Math.random().toString(36).substring(2, 8).toUpperCase()
+         const status = global.autoTrack ? '🟢 AKTIF' : '🔴 NONAKTIF'
          
-         // Simpan ke database
-         if (!global.trackLinks) global.trackLinks = {}
-         global.trackLinks[code] = {
-            url: url,
-            title: title,
-            created: new Date().toISOString(),
-            creator: m.sender,
-            clicks: []
-         }
+         let reply = `📌 *Auto Tracking ${status}*\n\n`
+         reply += `Ketika auto tracking aktif:\n`
+         reply += `✅ Bot otomatis catat siapa yang kirim pesan "udah" atau "klik"\n`
+         reply += `✅ Data tersimpan di database\n\n`
+         reply += `📊 Cek hasil: .cektrack [kode]\n\n`
+         reply += `📌 Matikan/nyalakan: ${isPrefix}autotrack`
 
-         // Bikin link pendek pake TinyURL
-         let shortUrl = ''
-         try {
-            const tinyRes = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`)
-            shortUrl = await tinyRes.text()
-            if (!shortUrl || !shortUrl.startsWith('http')) {
-               shortUrl = url
-            }
-         } catch (e) {
-            shortUrl = url
-            console.log('TinyURL error, pake link asli')
-         }
-
-         await m.reply(
-            `✅ *Link Tracking Dibuat!*\n\n` +
-            `🔗 *Link Target:* ${shortUrl}\n` +
-            `📌 *Title:* ${title}\n` +
-            `📋 *Kode:* ${code}\n\n` +
-            `📊 *Cek hasil:* ${isPrefix}cektrack ${code}\n\n` +
-            `📌 *Kirim link ke target!*\n` +
-            `Bot bakal otomatis catat siapa yang klik.`
-         )
+         await m.reply(reply)
 
       } catch (error) {
          console.error('Error:', error)
@@ -67,4 +25,4 @@ export default {
       }
    },
    owner: true
-           }
+}
