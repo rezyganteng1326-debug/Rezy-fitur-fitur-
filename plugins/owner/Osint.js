@@ -1,7 +1,7 @@
 export default {
    command: ['osintgacor', 'og', 'osintmax'],
    category: 'owner',
-   description: 'OSINT ULTIMATE - Provider Fix Total',
+   description: 'OSINT ULTIMATE - Provider Fix (3 Digit)',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (!text) {
@@ -9,8 +9,7 @@ export default {
                `🔥 *OSINT ULTIMATE - PALING GACOR!*\n\n` +
                `📌 ${isPrefix}osintgacor 6281234567890\n\n` +
                `📊 *Data yang didapat:*\n` +
-               `✅ WhatsApp\n✅ Telegram\n✅ Truecaller\n✅ GetContact\n✅ Provider SIM (prefix Indonesia)\n` +
-               `✅ Lokasi & Koordinat\n✅ Media Sosial (6 platform)\n✅ Email & Username\n✅ Leak Database (HIBP)`
+               `✅ WhatsApp\n✅ Telegram\n✅ Truecaller\n✅ GetContact\n✅ Provider SIM\n✅ Lokasi & Koordinat\n✅ Media Sosial\n✅ Email & Username\n✅ Leak Database`
             )
          }
 
@@ -57,7 +56,7 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 2: NAMA (MULTI SOURCE)
+         // SEKSI 2: NAMA
          // ============================================================
          result += `╭─❑ *IDENTITAS & NAMA*\n`
          let identityFound = false
@@ -65,7 +64,7 @@ export default {
          // Truecaller
          try {
             const tcRes = await fetch(`https://www.truecaller.com/search?q=${number}`, {
-               headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+               headers: { 'User-Agent': 'Mozilla/5.0' }
             })
             const tcText = await tcRes.text()
             const nameMatch = tcText.match(/<span[^>]*class="name"[^>]*>([^<]+)<\/span>/)
@@ -89,21 +88,6 @@ export default {
             } catch (e) {}
          }
 
-         // Google
-         if (!identityFound) {
-            try {
-               const gRes = await fetch(`https://www.google.com/search?q=${fullNumber}`, {
-                  headers: { 'User-Agent': 'Mozilla/5.0' }
-               })
-               const gText = await gRes.text()
-               const gMatch = gText.match(/<h3[^>]*>([^<]+)<\/h3>/)
-               if (gMatch && gMatch[1].length < 100) {
-                  result += `│ 👤 Google: ${gMatch[1]}\n`
-                  identityFound = true
-               }
-            } catch (e) {}
-         }
-
          if (!identityFound) {
             result += `│ ❌ Nama tidak ditemukan di publik\n`
          }
@@ -111,66 +95,56 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 3: PROVIDER (FIX TOTAL)
+         // SEKSI 3: PROVIDER (FIX 3 DIGIT)
          // ============================================================
          result += `╭─❑ *PROVIDER & SIM CARD*\n`
-         
-         // MAP PREFIX PROVIDER INDONESIA (LENGKAP)
-         const providerMap = {
+
+         // MAP PREFIX 3 DIGIT INDONESIA
+         const prefixMap = {
             // Telkomsel
-            '0811': 'Telkomsel', '0812': 'Telkomsel', '0813': 'Telkomsel',
-            '0814': 'Telkomsel', '0815': 'Telkomsel', '0816': 'Telkomsel',
-            '0817': 'Telkomsel', '0818': 'Telkomsel', '0819': 'Telkomsel',
-            '0821': 'Telkomsel', '0822': 'Telkomsel', '0823': 'Telkomsel',
+            '811': 'Telkomsel', '812': 'Telkomsel', '813': 'Telkomsel',
+            '814': 'Telkomsel', '815': 'Telkomsel', '816': 'Telkomsel',
+            '817': 'Telkomsel', '818': 'Telkomsel', '819': 'Telkomsel',
+            '821': 'Telkomsel', '822': 'Telkomsel', '823': 'Telkomsel',
+            '824': 'Telkomsel', '825': 'Telkomsel', '826': 'Telkomsel',
+            '827': 'Telkomsel', '828': 'Telkomsel', '829': 'Telkomsel',
             // Axis
-            '0831': 'Axis', '0832': 'Axis', '0833': 'Axis',
-            '0834': 'Axis', '0835': 'Axis', '0836': 'Axis',
-            '0837': 'Axis', '0838': 'Axis', '0839': 'Axis',
+            '831': 'Axis', '832': 'Axis', '833': 'Axis',
+            '834': 'Axis', '835': 'Axis', '836': 'Axis',
+            '837': 'Axis', '838': 'Axis', '839': 'Axis',
             // Indosat
-            '0851': 'Indosat', '0852': 'Indosat', '0853': 'Indosat',
-            '0854': 'Indosat', '0855': 'Indosat', '0856': 'Indosat',
-            '0857': 'Indosat', '0858': 'Indosat', '0859': 'Indosat',
+            '851': 'Indosat', '852': 'Indosat', '853': 'Indosat',
+            '854': 'Indosat', '855': 'Indosat', '856': 'Indosat',
+            '857': 'Indosat', '858': 'Indosat', '859': 'Indosat',
             // XL
-            '0877': 'XL', '0878': 'XL', '0879': 'XL',
+            '877': 'XL', '878': 'XL', '879': 'XL',
             // Smartfren
-            '0881': 'Smartfren', '0882': 'Smartfren', '0883': 'Smartfren',
-            '0884': 'Smartfren', '0885': 'Smartfren', '0886': 'Smartfren',
-            '0887': 'Smartfren', '0888': 'Smartfren', '0889': 'Smartfren',
+            '881': 'Smartfren', '882': 'Smartfren', '883': 'Smartfren',
+            '884': 'Smartfren', '885': 'Smartfren', '886': 'Smartfren',
+            '887': 'Smartfren', '888': 'Smartfren', '889': 'Smartfren',
             // Tri
-            '0895': 'Tri', '0896': 'Tri', '0897': 'Tri',
-            '0898': 'Tri', '0899': 'Tri',
-            // Extra: 0811-0819 semua Telkomsel
-            '0810': 'Telkomsel', '0820': 'Telkomsel', '0824': 'Telkomsel',
-            '0825': 'Telkomsel', '0826': 'Telkomsel', '0827': 'Telkomsel',
-            '0828': 'Telkomsel', '0829': 'Telkomsel',
-            // Extra: 0851-0859 Indosat/IM3
-            '0850': 'Indosat',
-            // Extra: 0878 XL
-            '0870': 'XL', '0871': 'XL', '0872': 'XL',
-            '0873': 'XL', '0874': 'XL', '0875': 'XL',
-            '0876': 'XL',
+            '895': 'Tri', '896': 'Tri', '897': 'Tri',
+            '898': 'Tri', '899': 'Tri',
          }
 
-         const prefix = number.substring(0, 4)
-         const provider = providerMap[prefix] || 'Unknown'
-         
-         // Tampilkan provider dengan emoji
-         const providerEmoji = {
+         // Ambil 3 digit pertama setelah 62 (contoh: 895)
+         const prefix = number.substring(2, 5)
+         const provider = prefixMap[prefix] || 'Unknown'
+
+         const emojiMap = {
             'Telkomsel': '📡',
             'Indosat': '📡',
             'XL': '📡',
             'Tri': '📡',
             'Smartfren': '📡',
             'Axis': '📡',
-            'By.U': '📡',
-            'IM3': '📡',
-            'Mentari': '📡',
             'Unknown': '❌'
          }
-         const emoji = providerEmoji[provider] || '❌'
+         const emoji = emojiMap[provider] || '❌'
          result += `│ ${emoji} Provider: ${provider}\n`
+         result += `│ 📌 Prefix: ${prefix}\n`
 
-         // Coba ambil lokasi dari IP-API
+         // Coba ambil lokasi
          try {
             const ipRes = await fetch(`http://ip-api.com/json/${number}?fields=status,country,regionName,city,lat,lon,timezone`)
             const ipData = await ipRes.json()
@@ -288,4 +262,4 @@ export default {
       }
    },
    owner: true
-}
+            }
