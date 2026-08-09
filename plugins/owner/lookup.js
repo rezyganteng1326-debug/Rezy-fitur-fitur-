@@ -1,5 +1,5 @@
 import { ApifyClient } from 'apify-client';
-import UAParser from 'ua-parser-js';
+import { UAParser } from 'ua-parser-js';
 
 export default {
    command: [
