@@ -32,9 +32,9 @@ export default {
          await m.reply(`⏳ Mencari data untuk ${fullNumber}...`)
 
          // === PANGGIL APIFY API ===
-         const client = new ApifyClient({
-            token: 'apify_api_zqVEsaVkXZv2oYgbQBdHOUkJCAir6s3CtPhh'
-         })
+const client = new ApifyClient({
+   token: 'apify_api_zqVEsaVkXZv2oYgbQBdHOUkJCAir6s3CtPhh'
+})
 
          const input = {
             numbers: [fullNumber]
