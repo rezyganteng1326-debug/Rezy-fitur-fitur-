@@ -217,47 +217,70 @@ async function ipLoggerHandler(m, sock, isPrefix, text) {
 
    if (!url.startsWith('http://') && !url.startsWith('https://')) {
       return m.reply('⚠️ URL harus dimulai dengan http:// atau https://')
-   }
 
    await m.reply(`⏳ Membuat link tracking via IPLogger...`)
 
-   const apiUrl = 'https://iplogger.org/api/v1/create'
-   const payload = new URLSearchParams({
-      url: url,
-      title: title,
-      private: '0'
-   })
+   try {
+      const apiUrl = 'https://iplogger.org/api/v1/create'
+      const payload = new URLSearchParams({
+         url: url,
+         title: title,
+         private: '0'
+      })
 
-   const res = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-         'Content-Type': 'application/x-www-form-urlencoded',
-         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      },
-      body: payload.toString()
-   })
+      const res = await fetch(apiUrl, {
+         method: 'POST',
+         headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+         },
+         body: payload.toString()
+      })
 
-   const data = await res.json()
+      const textRes = await res.text()
+      let data
+      try {
+         data = JSON.parse(textRes)
+      } catch (e) {
+         console.error('Response:', textRes.slice(0, 500))
+         return m.reply(
+            `❌ API IPLogger error.\n\n` +
+            `📌 *Cara Manual (PASTI JALAN):*\n` +
+            `1. Buka https://iplogger.org di browser\n` +
+            `2. Paste URL: ${url}\n` +
+            `3. Isi Title: ${title}\n` +
+            `4. Klik "Create URL"\n` +
+            `5. Copy link & kode\n` +
+            `6. Cek pake .track [kode]`
+         )
+      }
 
-   if (!data || !data.id) {
-      return m.reply(`❌ Gagal membuat link.\nError: ${data?.error || 'Unknown'}`)
+      if (!data || !data.id) {
+         return m.reply(`❌ Gagal membuat link.\nError: ${data?.error || 'Unknown'}`)
+      }
+
+      await m.reply(
+         `✅ *Link Tracking Berhasil Dibuat!*\n\n` +
+         `🔗 *Link Target:* https://iplogger.org/${data.id}\n` +
+         `📌 *Title:* ${title}\n` +
+         `📋 *Kode:* ${data.id}\n\n` +
+         `📊 *Cek hasil:* ${isPrefix}track ${data.id}`
+      )
+
+   } catch (error) {
+      console.error('IPLogger error:', error)
+      await m.reply(
+         `❌ Error: ${error.message}\n\n` +
+         `📌 *Cara Manual (PASTI JALAN):*\n` +
+         `1. Buka https://iplogger.org di browser\n` +
+         `2. Paste URL: ${url}\n` +
+         `3. Isi Title: ${title}\n` +
+         `4. Klik "Create URL"\n` +
+         `5. Copy link & kode\n` +
+         `6. Cek pake .track [kode]`
+      )
    }
-
-   await m.reply(
-      `✅ *Link Tracking Berhasil Dibuat!*\n\n` +
-      `🔗 *Link Target:* https://iplogger.org/${data.id}\n` +
-      `📌 *Title:* ${title}\n` +
-      `📋 *Kode:* ${data.id}\n\n` +
-      `📊 *Cek hasil:* ${isPrefix}track ${data.id}`
-   )
 }
-
-// ============================================================
-// HANDLER TRACK (CEK HASIL TRACKING)
-// ============================================================
-async function trackHandler(m, sock, isPrefix, text) {
-   if (!text) {
-      return m.reply(
          `⚠️ *Format Salah!*\n\n` +
          `📌 ${isPrefix}track [kode]\n` +
          `📌 Contoh: ${isPrefix}track abc123`
@@ -302,4 +325,170 @@ async function trackHandler(m, sock, isPrefix, text) {
    }
 
    await m.reply(result)
+         }
+// ============================================================
+// HANDLER IP LOGGER (BUAT LINK TRACKING)
+// ============================================================
+async function ipLoggerHandler(m, sock, isPrefix, text) {
+   if (!text) {
+      return m.reply(
+         `⚠️ *Format Salah!*\n\n` +
+         `📌 ${isPrefix}ipg https://youtube.com|Judul\n\n` +
+         `📌 Contoh:\n` +
+         `${isPrefix}ipg https://71h.com|rejoy`
+      )
+   }
+
+   const parts = text.split('|')
+   if (parts.length < 2) {
+      return m.reply(`⚠️ Format: ${isPrefix}ipg https://youtube.com|Judul`)
+   }
+
+   const url = parts[0].trim()
+   const title = parts.slice(1).join('|').trim() || 'Link'
+
+   if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return m.reply('⚠️ URL harus dimulai dengan http:// atau https://')
+   }
+
+   await m.reply(`⏳ Membuat link tracking via IPLogger...`)
+
+   try {
+      const apiUrl = 'https://iplogger.org/api/v1/create'
+      const payload = new URLSearchParams({
+         url: url,
+         title: title,
+         private: '0'
+      })
+
+      const res = await fetch(apiUrl, {
+         method: 'POST',
+         headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+         },
+         body: payload.toString()
+      })
+
+      const textRes = await res.text()
+      let data
+      try {
+         data = JSON.parse(textRes)
+      } catch (e) {
+         console.error('Response:', textRes.slice(0, 500))
+         return m.reply(
+            `❌ API IPLogger error.\n\n` +
+            `📌 *Cara Manual (PASTI JALAN):*\n` +
+            `1. Buka https://iplogger.org di browser\n` +
+            `2. Paste URL: ${url}\n` +
+            `3. Isi Title: ${title}\n` +
+            `4. Klik "Create URL"\n` +
+            `5. Copy link & kode\n` +
+            `6. Cek pake .track [kode]`
+         )
+      }
+
+      if (!data || !data.id) {
+         return m.reply(`❌ Gagal membuat link.\nError: ${data?.error || 'Unknown'}`)
+      }
+
+      await m.reply(
+         `✅ *Link Tracking Berhasil Dibuat!*\n\n` +
+         `🔗 *Link Target:* https://iplogger.org/${data.id}\n` +
+         `📌 *Title:* ${title}\n` +
+         `📋 *Kode:* ${data.id}\n\n` +
+         `📊 *Cek hasil:* ${isPrefix}track ${data.id}`
+      )
+
+   } catch (error) {
+      console.error('IPLogger error:', error)
+      await m.reply(
+         `❌ Error: ${error.message}\n\n` +
+         `📌 *Cara Manual (PASTI JALAN):*\n` +
+         `1. Buka https://iplogger.org di browser\n` +
+         `2. Paste URL: ${url}\n` +
+         `3. Isi Title: ${title}\n` +
+         `4. Klik "Create URL"\n` +
+         `5. Copy link & kode\n` +
+         `6. Cek pake .track [kode]`
+      )
+   }
+}
+
+// ============================================================
+// HANDLER TRACK (CEK HASIL TRACKING)
+// ============================================================
+async function trackHandler(m, sock, isPrefix, text) {
+   if (!text) {
+      return m.reply(
+         `⚠️ *Format Salah!*\n\n` +
+         `📌 ${isPrefix}track [kode]\n` +
+         `📌 Contoh: ${isPrefix}track abc123`
+      )
+   }
+
+   const code = text.trim()
+   await m.reply(`⏳ Mengambil data tracking untuk ${code}...`)
+
+   try {
+      const res = await fetch(`https://iplogger.org/api/v1/stats/${code}`, {
+         headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+         }
+      })
+
+      const textRes = await res.text()
+      let data
+      try {
+         data = JSON.parse(textRes)
+      } catch (e) {
+         console.error('Response:', textRes.slice(0, 500))
+         return m.reply(
+            `❌ Gagal ambil data.\n\n` +
+            `📌 *Cek Manual di Browser:*\n` +
+            `https://iplogger.org/${code}/stats`
+         )
+      }
+
+      if (!data || data.error) {
+         return m.reply(
+            `❌ Data tidak ditemukan untuk kode ${code}\n\n` +
+            `📌 *Cek Manual di Browser:*\n` +
+            `https://iplogger.org/${code}/stats`
+         )
+      }
+
+      let result = `📊 *HASIL TRACKING*\n\n`
+      result += `🔗 Link: https://iplogger.org/${code}\n`
+      result += `🖱️ Total Klik: ${data.clicks || 0}\n\n`
+
+      if (data.clicks && data.clicks > 0) {
+         result += `📋 *Data Klik Terbaru:*\n`
+         const click = data.latest_click || data.clicks_data?.[0]
+         
+         if (click) {
+            if (click.ip) result += `📍 IP: ${click.ip}\n`
+            if (click.country) result += `🌍 Negara: ${click.country}\n`
+            if (click.region) result += `🗺️ Provinsi: ${click.region}\n`
+            if (click.city) result += `🏙️ Kota: ${click.city}\n`
+            if (click.device) result += `📱 Perangkat: ${click.device}\n`
+            if (click.os) result += `🖥️ OS: ${click.os}\n`
+            if (click.browser) result += `🌐 Browser: ${click.browser}\n`
+            if (click.time) result += `🕐 Waktu: ${new Date(click.time).toLocaleString('id-ID')}\n`
+         }
+      } else {
+         result += `📭 Belum ada yang klik link ini.\n`
+         result += `📌 Kirim link: https://iplogger.org/${code}`
+      }
+
+      await m.reply(result)
+
+   } catch (error) {
+      console.error('Track error:', error)
+      await m.reply(
+         `❌ Error: ${error.message}\n\n` +
+         `📌 *Cek Manual di Browser:*\n` +
+         `https://iplogger.org/${code}/stats`
+      )
+   }
          }
