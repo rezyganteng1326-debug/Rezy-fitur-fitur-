@@ -67,33 +67,35 @@ export default {
             return m.reply('⚠️ URL harus dimulai dengan http:// atau https://')
          }
 
-         const response = await fetch(apiUrl, {
-   method: 'POST',
-   headers: {
-      'Content-Type': 'application/json',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-   },
-   body: JSON.stringify(payload)
-})
+         await m.reply(`⏳ Membuat link tracking...`)
 
-// Cek response sebelum parse JSON
-const text = await response.text()
-let data
-try {
-   data = JSON.parse(text)
-} catch (e) {
-   console.error('Response text:', text.slice(0, 500))
-   return m.reply(`❌ API Grabify error. Coba lagi nanti.\n\n${text.slice(0, 200)}`)
-}
-         const response = await fetch(apiUrl, {
+         // === PANGGIL API GRABIFY ===
+         const apiUrl = 'https://grabify.link/api/url/create'
+         const payload = {
+            url: url,
+            title: title,
+            private: false,
+            password: '',
+            campaign: 'whatsapp_bot'
+         }
+
+         const resCreate = await fetch(apiUrl, {
             method: 'POST',
             headers: {
-               'Content-Type': 'application/json'
+               'Content-Type': 'application/json',
+               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             },
             body: JSON.stringify(payload)
          })
 
-         const data = await response.json()
+         const textResult = await resCreate.text()
+         let data
+         try {
+            data = JSON.parse(textResult)
+         } catch (e) {
+            console.error('Response:', textResult.slice(0, 500))
+            return m.reply(`❌ API Grabify error. Coba lagi nanti.`)
+         }
 
          if (!data || !data.shortcode) {
             return m.reply(`❌ Gagal membuat link.\nError: ${data?.message || 'Unknown error'}`)
@@ -190,20 +192,20 @@ async function trackLink(m, code) {
    try {
       // === PANGGIL API GRABIFY UNTUK CEK DATA ===
       const apiUrl = `https://grabify.link/api/url/info?shortcode=${code}`
-      const response = await fetch(apiUrl, {
-   headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-   }
-})
+      const resTrack = await fetch(apiUrl, {
+         headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+         }
+      })
 
-const text = await response.text()
-let data
-try {
-   data = JSON.parse(text)
-} catch (e) {
-   console.error('Response text:', text.slice(0, 500))
-   return m.reply(`❌ API Grabify error. Coba lagi nanti.\n\n${text.slice(0, 200)}`)
-}
+      const textResult = await resTrack.text()
+      let data
+      try {
+         data = JSON.parse(textResult)
+      } catch (e) {
+         console.error('Response:', textResult.slice(0, 500))
+         return m.reply(`❌ API Grabify error. Coba lagi nanti.`)
+      }
 
       if (!data || data.error) {
          return m.reply(`❌ Gagal mengambil data.\nError: ${data?.error || 'Unknown'}`)
@@ -235,9 +237,10 @@ try {
             }
 
             if (latestClick.user_agent) {
-               result += `📱 *Perangkat:* ${latestClick.user_agent.device || 'Unknown'}\n`
-               result += `🖥️ *OS:* ${latestClick.user_agent.os || 'Unknown'}\n`
-               result += `🌐 *Browser:* ${latestClick.user_agent.browser || 'Unknown'}\n`
+               const ua = latestClick.user_agent
+               result += `📱 *Perangkat:* ${ua.device || 'Unknown'}\n`
+               result += `🖥️ *OS:* ${ua.os || 'Unknown'}\n`
+               result += `🌐 *Browser:* ${ua.browser || 'Unknown'}\n`
             }
 
             if (latestClick.timestamp) {
@@ -289,4 +292,4 @@ try {
       console.error('Track error:', error)
       await m.reply(`❌ Error: ${error.message}`)
    }
-           }
+   }
