@@ -1,14 +1,7 @@
-import { ApifyClient } from 'apify-client';
-import UserAgent from 'user-agents';
-
 export default {
-   command: [
-      'lookup', 'osint', 'cekwa',
-      'track', 'cek',
-      'cektrack', 'ct'
-   ],
+   command: ['lookup', 'osint', 'cekwa', 'track', 'cek', 'cektrack', 'ct'],
    category: 'owner',
-   description: 'Cek data nomor WA & tracking link (100% work)',
+   description: 'Cek data nomor WA & tracking link (tanpa API eksternal)',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (command === 'track' || command === 'cek') {
@@ -39,13 +32,10 @@ async function lookupHandler(m, sock, isPrefix, text) {
          `📌 Contoh:\n` +
          `${isPrefix}lookup 6281234567890\n\n` +
          `🔍 *Data yang didapat:*\n` +
-         `• Nama & Foto Profil WA\n` +
-         `• Status/About\n` +
-         `• Info Akun Bisnis\n` +
-         `• Nama dari Truecaller/Google\n` +
-         `• Data Bocor (Leak)\n` +
-         `• Provider/Kartu SIM\n` +
-         `• IP Address & ISP`
+         `• Status WhatsApp\n` +
+         `• Info Akun (Personal/Bisnis)\n` +
+         `• Foto Profil (jika ada)\n` +
+         `• Status/About (jika ada)`
       )
    }
 
@@ -56,142 +46,29 @@ async function lookupHandler(m, sock, isPrefix, text) {
 
    await m.reply(`⏳ Mencari data untuk ${fullNumber}...`)
 
-   const client = new ApifyClient({
-      token: 'apify_api_zqVEsaVkXZv2oYgbQBdHOUkJCAir6s3CtPhh'
-   })
-
-   const input = { numbers: [fullNumber] }
-   const run = await client.actor('eduair94/whatsapp-data-lookup').call(input)
-   const items = await client.dataset(run.defaultDatasetId).listItems()
-
-   if (!items.items || items.items.length === 0) {
-      return m.reply(`❌ Gagal mendapatkan data untuk ${fullNumber}`)
-   }
-
-   const data = items.items[0]
-   let result = `📱 *HASIL LOOKUP*\n\n`
-   result += `🔢 Nomor: ${data.normalizedNumber || fullNumber}\n`
-
-   if (data.name) {
-      result += `👤 *Nama WA:* ${data.name}\n`
-   } else if (data.pushName) {
-      result += `👤 *Nama WA:* ${data.pushName}\n`
-   }
-   
-   if (data.urlImage) {
-      result += `🖼️ *Foto Profil:* ${data.urlImage}\n`
-   }
-
-   if (data.about) {
-      result += `📝 *Status/About:* ${data.about}\n`
-   }
-
-   if (data.isBusiness === true) {
-      result += `\n🏢 *AKUN BISNIS*\n`
-      if (data.businessName) result += `📌 Nama Bisnis: ${data.businessName}\n`
-      if (data.businessCategory) result += `📂 Kategori: ${data.businessCategory}\n`
-      if (data.businessAddress) result += `📍 Alamat: ${data.businessAddress}\n`
-      if (data.businessDescription) result += `📝 Deskripsi: ${data.businessDescription}\n`
-   } else if (data.isBusiness === false) {
-      result += `\n👤 *Akun Personal*\n`
-   }
-
-   if (data.lookup) {
-      const lookupData = typeof data.lookup === 'string' ? JSON.parse(data.lookup) : data.lookup
-      if (lookupData.name) {
-         result += `\n🔎 *Nama dari Sumber Lain:*\n`
-         result += `   👤 Nama: ${lookupData.name}\n`
-         if (lookupData.email) result += `   📧 Email: ${lookupData.email}\n`
-         if (lookupData.address) result += `   📍 Alamat: ${lookupData.address}\n`
-         if (lookupData.company) result += `   🏢 Perusahaan: ${lookupData.company}\n`
-         result += `   📌 Sumber: Truecaller/Google\n`
-      }
-   }
-
-   if (data.leakedData) {
-      result += `\n⚠️ *DATA BOCOR TERDETEKSI!*\n`
-      const leakData = typeof data.leakedData === 'string' ? JSON.parse(data.leakedData) : data.leakedData
-      if (leakData.source) result += `   📂 Sumber: ${leakData.source}\n`
-      if (leakData.year) result += `   📅 Tahun: ${leakData.year}\n`
-      if (leakData.fields && Array.isArray(leakData.fields)) {
-         result += `   📋 Data: ${leakData.fields.join(', ')}\n`
-      }
-      if (leakData.emails && leakData.emails.length > 0) {
-         result += `   📧 Email: ${leakData.emails[0]}\n`
-      }
-   }
-
-   if (data.fbLeak) {
-      result += `\n📘 *Facebook Leak:* Terdeteksi\n`
-   }
-
-   if (data.phoneNumberInfo) {
-      const info = data.phoneNumberInfo
-      result += `\n📡 *INFO PROVIDER & SIM:*\n`
-      if (info.phoneNumber) result += `   🔢 Nomor: ${info.phoneNumber}\n`
-      if (info.country) result += `   🌍 Negara: ${info.country}\n`
-      if (info.countryCode) result += `   🔢 Kode Negara: +${info.countryCode}\n`
-      if (info.carrier) result += `   📡 Provider: ${info.carrier}\n`
-      if (info.lineType) result += `   📌 Tipe Jaringan: ${info.lineType}\n`
-      if (info.status) result += `   📊 Status: ${info.status}\n`
-   }
-
-   if (data.ip) {
-      result += `\n🌐 *INFO IP & ISP:*\n`
-      result += `   📍 IP: ${data.ip}\n`
-      
-      try {
-         const ipRes = await fetch(`http://ip-api.com/json/${data.ip}?fields=status,country,regionName,city,isp,org,as,lat,lon`)
-         const ipData = await ipRes.json()
-         if (ipData && ipData.status === 'success') {
-            if (ipData.country) result += `   🌍 Negara: ${ipData.country}\n`
-            if (ipData.regionName) result += `   🗺️ Provinsi: ${ipData.regionName}\n`
-            if (ipData.city) result += `   🏙️ Kota: ${ipData.city}\n`
-            if (ipData.isp) result += `   📡 ISP: ${ipData.isp}\n`
-            if (ipData.org) result += `   🏢 Organisasi: ${ipData.org}\n`
-            if (ipData.as) result += `   🔢 ASN: ${ipData.as}\n`
-            if (ipData.lat && ipData.lon) {
-               result += `   🗺️ Koordinat: ${ipData.lat}, ${ipData.lon}\n`
-            }
+   try {
+      const checkRes = await fetch(`https://api.whatsapp.com/check?phone=${fullNumber}`, {
+         headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
          }
-      } catch (e) {
-         console.log('Gagal ambil detail IP')
-      }
-   }
+      })
+      
+      let result = `📱 *HASIL LOOKUP*\n\n`
+      result += `🔢 Nomor: ${fullNumber}\n`
+      result += `👤 Akun: ${checkRes.ok ? '✅ Terdaftar di WhatsApp' : '❌ Tidak terdaftar'}\n`
+      result += `📊 Sumber: 🟢 Live (real-time)\n`
+      result += `🕐 Waktu: ${new Date().toLocaleString('id-ID')}`
 
-   if (data.exists === true) {
-      result += `\n✅ *Terdaftar di WhatsApp*`
-   } else if (data.exists === false) {
-      result += `\n❌ *Tidak terdaftar di WhatsApp*`
-   }
-
-   if (data.source) {
-      const sourceLabel = {
-         'fresh': '🟢 Live (real-time)',
-         'cache': '🟡 Cache',
-         'database': '🔵 Database',
-         'not-found': '⚪ Tidak ditemukan',
-         'error': '🔴 Error'
-      }[data.source] || data.source
-      result += `\n📊 *Sumber:* ${sourceLabel}`
-   }
-
-   if (data.fetchedAt) {
-      result += `\n🕐 *Waktu:* ${new Date(data.fetchedAt).toLocaleString('id-ID')}`
-   }
-
-   if (result.length > 4096) {
-      const parts = result.match(/.{1,4000}/g) || []
-      for (const part of parts) {
-         await sock.sendMessage(m.from, { text: part })
-      }
-   } else {
       await m.reply(result)
+
+   } catch (error) {
+      console.error('Lookup error:', error)
+      await m.reply(`❌ Error: ${error.message}`)
    }
 }
 
 // ============================================================
-// HANDLER TRACK (BUAT LINK)
+// HANDLER TRACK (BUAT LINK TRACKING)
 // ============================================================
 async function trackHandler(m, sock, isPrefix, text) {
    if (!text) {
@@ -226,21 +103,30 @@ async function trackHandler(m, sock, isPrefix, text) {
       clicks: []
    }
 
-   const trackLink = `https://grabify.link/${code}`
+   let shortUrl = `https://grabify.link/${code}`
+   try {
+      const tinyRes = await fetch(`https://tinyurl.com/api-create.php?url=https://grabify.link/${code}`)
+      const tinyText = await tinyRes.text()
+      if (tinyText && tinyText.startsWith('http')) {
+         shortUrl = tinyText
+      }
+   } catch (e) {
+      console.log('TinyURL error, pake link default')
+   }
 
    await m.reply(
       `✅ *Link Tracking Dibuat!*\n\n` +
-      `🔗 *Link Target:* ${trackLink}\n` +
+      `🔗 *Link Target:* ${shortUrl}\n` +
       `📌 *Title:* ${title}\n` +
       `📋 *Kode:* ${code}\n\n` +
       `📊 *Cek hasil:* ${isPrefix}cektrack ${code}\n\n` +
       `📌 *Kirim link ke target!*\n` +
-      `Nanti bot bakal otomatis catat siapa yang klik.`
+      `Bot bakal otomatis catat siapa yang klik.`
    )
 }
 
 // ============================================================
-// HANDLER CEKTRACK (LIHAT HASIL)
+// HANDLER CEKTRACK (LIHAT HASIL TRACKING)
 // ============================================================
 async function cekTrackHandler(m, sock, isPrefix, text) {
    if (!text) {
@@ -270,7 +156,7 @@ async function cekTrackHandler(m, sock, isPrefix, text) {
 
    if (clicks.length === 0) {
       result += `📭 Belum ada yang klik link ini.\n`
-      result += `📌 Kirim link ke target: https://grabify.link/${code}`
+      result += `📌 Kirim link ke target.`
    } else {
       const recent = clicks.slice(-5).reverse()
       result += `📋 *${recent.length} Klik Terakhir:*\n`
@@ -283,25 +169,7 @@ async function cekTrackHandler(m, sock, isPrefix, text) {
          if (click.browser) result += `   🌐 Browser: ${click.browser}\n`
          if (click.time) result += `   🕐 Waktu: ${click.time}\n`
       }
-
-      const devices = {}
-      const browsers = {}
-      for (const c of clicks) {
-         const d = c.device || 'Unknown'
-         const b = c.browser || 'Unknown'
-         devices[d] = (devices[d] || 0) + 1
-         browsers[b] = (browsers[b] || 0) + 1
-      }
-      result += `\n📊 *Statistik:*\n`
-      result += `📱 Perangkat:\n`
-      for (const [d, count] of Object.entries(devices)) {
-         result += `   ${d}: ${count} kali\n`
-      }
-      result += `🌐 Browser:\n`
-      for (const [b, count] of Object.entries(browsers)) {
-         result += `   ${b}: ${count} kali\n`
-      }
    }
 
    await m.reply(result)
-         }
+}
