@@ -11,7 +11,7 @@ export default {
                `🔍 *Data yang didapat:*\n` +
                `• Status WhatsApp\n` +
                `• Provider/Kartu SIM\n` +
-               `• Nama dari Truecaller\n` +
+               `• Nama dari Truecaller/Google\n` +
                `• IP & Lokasi\n` +
                `• Kebocoran Data (Leak)\n` +
                `• Info Lainnya`
@@ -45,101 +45,130 @@ export default {
          }
 
          // ================================
-         // 2. CEK PROVIDER (via ip-api.com)
+         // 2. CEK PROVIDER & LOKASI (FIX)
          // ================================
          result += `\n📌 *PROVIDER & LOKASI*\n`
          try {
-            const ipRes = await fetch(`http://ip-api.com/json/${number}?fields=status,country,regionName,city,isp,org,as,lat,lon,timezone`)
-            const ipData = await ipRes.json()
-            if (ipData && ipData.status === 'success') {
-               if (ipData.country) result += `   🌍 Negara: ${ipData.country}\n`
-               if (ipData.regionName) result += `   🗺️ Provinsi: ${ipData.regionName}\n`
-               if (ipData.city) result += `   🏙️ Kota: ${ipData.city}\n`
-               if (ipData.isp) result += `   📡 ISP: ${ipData.isp}\n`
-               if (ipData.org) result += `   🏢 Organisasi: ${ipData.org}\n`
-               if (ipData.as) result += `   🔢 ASN: ${ipData.as}\n`
-               if (ipData.lat && ipData.lon) {
-                  result += `   🗺️ Koordinat: ${ipData.lat}, ${ipData.lon}\n`
-               }
-               if (ipData.timezone) result += `   🕐 Zona Waktu: ${ipData.timezone}\n`
+            // Coba via numlookup (API gratis)
+            const provRes = await fetch(`https://api.numlookup.com/validate/${number}`, {
+               headers: { 'User-Agent': 'Mozilla/5.0' }
+            })
+            const provData = await provRes.json()
+            if (provData && provData.valid) {
+               if (provData.country) result += `   🌍 Negara: ${provData.country}\n`
+               if (provData.carrier) result += `   📡 Provider: ${provData.carrier}\n`
+               if (provData.line_type) result += `   📌 Tipe: ${provData.line_type}\n`
             } else {
-               result += `   ❌ Gagal ambil data provider\n`
+               // Fallback ke ip-api
+               const ipRes = await fetch(`http://ip-api.com/json/${number}?fields=status,country,regionName,city,isp,org,as,lat,lon,timezone`)
+               const ipData = await ipRes.json()
+               if (ipData && ipData.status === 'success') {
+                  if (ipData.country) result += `   🌍 Negara: ${ipData.country}\n`
+                  if (ipData.regionName) result += `   🗺️ Provinsi: ${ipData.regionName}\n`
+                  if (ipData.city) result += `   🏙️ Kota: ${ipData.city}\n`
+                  if (ipData.isp) result += `   📡 ISP: ${ipData.isp}\n`
+                  if (ipData.org) result += `   🏢 Organisasi: ${ipData.org}\n`
+                  if (ipData.as) result += `   🔢 ASN: ${ipData.as}\n`
+                  if (ipData.lat && ipData.lon) {
+                     result += `   🗺️ Koordinat: ${ipData.lat}, ${ipData.lon}\n`
+                  }
+                  if (ipData.timezone) result += `   🕐 Zona Waktu: ${ipData.timezone}\n`
+               } else {
+                  result += `   ❌ Gagal ambil data provider\n`
+               }
             }
          } catch (e) {
             result += `   ❌ Error: ${e.message}\n`
          }
 
          // ================================
-         // 3. CEK TRUECALLER (via API)
+         // 3. CEK TRUECALLER + GOOGLE (FIX)
          // ================================
-         result += `\n📌 *TRUECALLER / NAMA PUBLIK*\n`
+         result += `\n📌 *NAMA PUBLIK (Truecaller/Google)*\n`
+         let nameFound = false
+
+         // Coba via Truecaller API
          try {
-            // Pake Truecaller API (gratis, tapi butuh token)
-            // Alternatif: pake google search
-            const tcRes = await fetch(`https://api.truecaller.com/v2/search?q=${fullNumber}`, {
-               headers: {
-                  'User-Agent': 'Mozilla/5.0',
-                  'Authorization': 'Bearer YOUR_TRUECALLER_TOKEN'
-               }
+            const tcRes = await fetch(`https://www.truecaller.com/search?q=${number}`, {
+               headers: { 'User-Agent': 'Mozilla/5.0' }
             })
-            const tcData = await tcRes.json()
-            if (tcData && tcData.name) {
-               result += `   👤 Nama: ${tcData.name}\n`
-               if (tcData.countryCode) result += `   🌍 Negara: ${tcData.countryCode}\n`
-            } else {
-               // Coba cari via Google
+            const tcText = await tcRes.text()
+            const nameMatch = tcText.match(/<span[^>]*class="name"[^>]*>([^<]+)<\/span>/)
+            if (nameMatch && nameMatch[1].length < 100) {
+               result += `   👤 Nama (Truecaller): ${nameMatch[1]}\n`
+               nameFound = true
+            }
+         } catch (e) {}
+
+         // Kalo gagal, coba via Google
+         if (!nameFound) {
+            try {
                const googleRes = await fetch(`https://www.google.com/search?q=${fullNumber}`, {
                   headers: { 'User-Agent': 'Mozilla/5.0' }
                })
                const googleText = await googleRes.text()
                const nameMatch = googleText.match(/<h3[^>]*>([^<]+)<\/h3>/)
-               if (nameMatch) {
-                  result += `   👤 Nama (Google): ${nameMatch[1].slice(0, 50)}\n`
-               } else {
-                  result += `   ❌ Nama tidak ditemukan di publik\n`
+               if (nameMatch && nameMatch[1].length < 100) {
+                  result += `   👤 Nama (Google): ${nameMatch[1]}\n`
+                  nameFound = true
                }
-            }
-         } catch (e) {
-            // Coba Truecaller alternatif
+            } catch (e) {}
+         }
+
+         if (!nameFound) {
+            // Coba via leak (kalo ada)
             try {
-               const tcRes2 = await fetch(`https://www.truecaller.com/search?q=${number}`, {
+               const leakRes = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${fullNumber}`, {
                   headers: { 'User-Agent': 'Mozilla/5.0' }
                })
-               const tcText2 = await tcRes2.text()
-               const nameMatch2 = tcText2.match(/<span[^>]*class="name"[^>]*>([^<]+)<\/span>/)
-               if (nameMatch2) {
-                  result += `   👤 Nama (Truecaller): ${nameMatch2[1].slice(0, 50)}\n`
-               } else {
-                  result += `   ❌ Data tidak ditemukan\n`
+               if (leakRes.status === 200) {
+                  const leakData = await leakRes.json()
+                  if (leakData && leakData.length > 0) {
+                     for (const leak of leakData.slice(0, 3)) {
+                        if (leak.Name) {
+                           result += `   📂 Leak: ${leak.Name}\n`
+                           nameFound = true
+                        }
+                     }
+                  }
                }
-            } catch (e2) {
-               result += `   ❌ Error: ${e2.message}\n`
-            }
+            } catch (e) {}
+         }
+
+         if (!nameFound) {
+            result += `   ❌ Nama tidak ditemukan di publik\n`
          }
 
          // ================================
          // 4. CEK KEBOCORAN DATA (LEAK)
          // ================================
          result += `\n📌 *KEBOCORAN DATA*\n`
+         let leakFound = false
          try {
-            const leakRes = await fetch(`https://haveibeenpwned.com/api/v3/breaches?email=${number}@leak.test`, {
+            const leakRes = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${fullNumber}`, {
                headers: { 'User-Agent': 'Mozilla/5.0' }
             })
             if (leakRes.status === 200) {
                const leakData = await leakRes.json()
                if (leakData && leakData.length > 0) {
+                  leakFound = true
                   result += `   ⚠️ Terdeteksi ${leakData.length} kebocoran!\n`
-                  for (const leak of leakData.slice(0, 3)) {
-                     result += `   📂 ${leak.Name} (${leak.BreachDate})\n`
+                  const displayLeaks = leakData.slice(0, 5)
+                  for (const leak of displayLeaks) {
+                     const date = leak.BreachDate || 'Unknown'
+                     result += `   📂 ${leak.Name} (${date})\n`
                   }
-               } else {
-                  result += `   ✅ Tidak ada kebocoran data\n`
+                  if (leakData.length > 5) {
+                     result += `   📂 ... dan ${leakData.length - 5} lainnya\n`
+                  }
                }
-            } else {
-               result += `   ❌ Gagal cek kebocoran\n`
             }
          } catch (e) {
             result += `   ❌ Error: ${e.message}\n`
+         }
+
+         if (!leakFound) {
+            result += `   ✅ Tidak ada kebocoran data ditemukan\n`
          }
 
          // ================================
