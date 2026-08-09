@@ -1,3 +1,6 @@
+import dotenv from 'dotenv'
+dotenv.config()
+
 import { spawn } from 'child_process'
 import { fileURLToPath } from 'url'
 
