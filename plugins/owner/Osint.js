@@ -43,7 +43,7 @@ export default {
 
          // Telegram (Auto Cek via API)
          try {
-            const tgToken = process.env.TELEGRAM_BOT_TOKEN
+            const tgToken = '8602229550:AAENgkLwgxMdC5d8Vjg6ACexb5VhXpiQpVo'
             if (tgToken) {
                const tgRes = await fetch(`https://api.telegram.org/bot${tgToken}/getChat?chat_id=${number}`, {
                   headers: { 'User-Agent': 'Mozilla/5.0' }
