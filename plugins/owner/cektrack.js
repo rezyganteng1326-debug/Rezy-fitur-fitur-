@@ -27,7 +27,6 @@ export default {
          let result = `📊 *HASIL TRACKING*\n\n`
          result += `🔗 Kode: ${code}\n`
          result += `📌 Title: ${data.title}\n`
-         result += `📅 Dibuat: ${new Date(data.created).toLocaleString('id-ID')}\n`
          result += `🖱️ Total Klik: ${clicks.length}\n\n`
 
          if (clicks.length === 0) {
@@ -75,4 +74,4 @@ export default {
       }
    },
    owner: true
-}
+                 }
