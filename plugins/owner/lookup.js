@@ -1,19 +1,48 @@
 import { ApifyClient } from 'apify-client';
 
 export default {
-   command: ['lookup', 'osint', 'cekwa', 'track', 'cek', 'ipg', 'iplogger'],
+   command: [
+      'lookup', 'osint', 'cekwa', 
+      'track', 'cek', 
+      'ipg', 'iplogger',
+      'grab', 'grabify',
+      'trackg', 'trackgr'
+   ],
    category: 'owner',
-   description: 'Cek data nomor WA & tracking link',
+   description: 'Cek data nomor WA & tracking link (IPLogger + Grabify)',
    async run(m, { sock, isPrefix, command, text }) {
       try {
+         // ============================
+         // IP LOGGER (BUAT LINK)
+         // ============================
          if (command === 'ipg' || command === 'iplogger') {
             return await ipLoggerHandler(m, sock, isPrefix, text)
          }
 
+         // ============================
+         // CEK IP LOGGER
+         // ============================
          if (command === 'track' || command === 'cek') {
             return await trackHandler(m, sock, isPrefix, text)
          }
 
+         // ============================
+         // GRABIFY (PANDUAN MANUAL)
+         // ============================
+         if (command === 'grab' || command === 'grabify') {
+            return await grabifyHandler(m, sock, isPrefix, text)
+         }
+
+         // ============================
+         // CEK GRABIFY
+         // ============================
+         if (command === 'trackg' || command === 'trackgr') {
+            return await trackGrabifyHandler(m, sock, isPrefix, text)
+         }
+
+         // ============================
+         // LOOKUP (DEFAULT)
+         // ============================
          await lookupHandler(m, sock, isPrefix, text)
 
       } catch (error) {
@@ -186,7 +215,7 @@ async function lookupHandler(m, sock, isPrefix, text) {
 }
 
 // ============================================================
-// HANDLER IP LOGGER
+// HANDLER IP LOGGER (BUAT LINK)
 // ============================================================
 async function ipLoggerHandler(m, sock, isPrefix, text) {
    if (!text) {
@@ -275,7 +304,7 @@ async function ipLoggerHandler(m, sock, isPrefix, text) {
 }
 
 // ============================================================
-// HANDLER TRACK
+// HANDLER TRACK (CEK IP LOGGER)
 // ============================================================
 async function trackHandler(m, sock, isPrefix, text) {
    if (!text) {
@@ -317,7 +346,7 @@ async function trackHandler(m, sock, isPrefix, text) {
          )
       }
 
-      let result = `📊 *HASIL TRACKING*\n\n`
+      let result = `📊 *HASIL TRACKING (IPLogger)*\n\n`
       result += `🔗 Link: https://iplogger.org/${code}\n`
       result += `🖱️ Total Klik: ${data.clicks || 0}\n\n`
 
@@ -351,3 +380,158 @@ async function trackHandler(m, sock, isPrefix, text) {
       )
    }
 }
+
+// ============================================================
+// HANDLER GRABIFY (PANDUAN MANUAL)
+// ============================================================
+async function grabifyHandler(m, sock, isPrefix, text) {
+   if (!text) {
+      return m.reply(
+         `⚠️ *Format Salah!*\n\n` +
+         `📌 ${isPrefix}grab https://youtube.com|Judul\n\n` +
+         `📌 Contoh:\n` +
+         `${isPrefix}grab https://71h.com|rejoy\n\n` +
+         `📌 *Fitur LENGKAP Grabify:*\n` +
+         `✅ IP Address\n` +
+         `✅ Koordinat GPS\n` +
+         `✅ Kota, Provinsi, Negara\n` +
+         `✅ Perangkat, OS, Browser\n` +
+         `✅ Referrer (sumber klik)\n` +
+         `✅ ISP (Provider internet)\n` +
+         `✅ Statistik lengkap`
+      )
+   }
+
+   const parts = text.split('|')
+   if (parts.length < 2) {
+      return m.reply(`⚠️ Format: ${isPrefix}grab https://youtube.com|Judul`)
+   }
+
+   const url = parts[0].trim()
+   const title = parts.slice(1).join('|').trim() || 'Link'
+
+   if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return m.reply('⚠️ URL harus dimulai dengan http:// atau https://')
+   }
+
+   await m.reply(
+      `📌 *PANDUAN GRABIFY (FITUR LENGKAP)*\n\n` +
+      `🔗 *URL Tujuan:* ${url}\n` +
+      `📌 *Judul:* ${title}\n\n` +
+      `📋 *LANGKAH-LANGKAH:*\n` +
+      `1️⃣ Buka browser: https://grabify.link\n` +
+      `2️⃣ Paste URL: ${url}\n` +
+      `3️⃣ Isi Title: ${title}\n` +
+      `4️⃣ Klik "Create URL"\n` +
+      `5️⃣ Copy link pendek (contoh: https://grabify.link/ABC123)\n` +
+      `6️⃣ Kirim link ke target\n` +
+      `7️⃣ Cek hasil pake: ${isPrefix}trackg [kode]\n\n` +
+      `📊 *Data yang didapat:*\n` +
+      `📍 IP & Koordinat GPS\n` +
+      `🏙️ Kota, Provinsi, Negara\n` +
+      `📱 Perangkat, OS, Browser\n` +
+      `🔗 Referrer (sumber klik)\n` +
+      `📡 ISP (Provider internet)`
+   )
+}
+
+// ============================================================
+// HANDLER TRACK GRABIFY
+// ============================================================
+async function trackGrabifyHandler(m, sock, isPrefix, text) {
+   if (!text) {
+      return m.reply(
+         `⚠️ *Format Salah!*\n\n` +
+         `📌 ${isPrefix}trackg [kode]\n` +
+         `📌 Contoh: ${isPrefix}trackg ABC123\n\n` +
+         `📌 Dapatkan kode dari link Grabify:\n` +
+         `https://grabify.link/ABC123 → kode: ABC123`
+      )
+   }
+
+   let code = text.trim()
+   if (code.includes('grabify.link')) {
+      code = code.split('/').pop()
+   }
+
+   await m.reply(`⏳ Mengambil data tracking untuk ${code}...`)
+
+   try {
+      const res = await fetch(`https://grabify.link/api/url/info?shortcode=${code}`, {
+         headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+         }
+      })
+
+      const textRes = await res.text()
+      let data
+      try {
+         data = JSON.parse(textRes)
+      } catch (e) {
+         return m.reply(
+            `❌ Gagal ambil data.\n\n` +
+            `📌 *Cek Manual di Browser:*\n` +
+            `https://grabify.link/${code}/stats`
+         )
+      }
+
+      if (!data || data.error) {
+         return m.reply(
+            `❌ Data tidak ditemukan untuk kode ${code}\n\n` +
+            `📌 *Cek Manual di Browser:*\n` +
+            `https://grabify.link/${code}/stats`
+         )
+      }
+
+      const click = data.latest_click || data.clicks_data?.[0]
+      
+      let result = `📊 *HASIL TRACKING GRABIFY*\n\n`
+      result += `🔗 Link: https://grabify.link/${code}\n`
+      result += `🖱️ Total Klik: ${data.clicks || 0}\n\n`
+
+      if (data.clicks && data.clicks > 0 && click) {
+         result += `📋 *Data Klik Terbaru:*\n`
+         
+         if (click.ip_address) result += `📍 IP: ${click.ip_address}\n`
+         
+         if (click.location) {
+            const loc = click.location
+            if (loc.city) result += `🏙️ Kota: ${loc.city}\n`
+            if (loc.region) result += `🗺️ Provinsi: ${loc.region}\n`
+            if (loc.country) result += `🌍 Negara: ${loc.country}\n`
+            if (loc.latitude && loc.longitude) {
+               result += `🗺️ Koordinat: ${loc.latitude}, ${loc.longitude}\n`
+            }
+         }
+
+         if (click.user_agent) {
+            const ua = click.user_agent
+            if (ua.device) result += `📱 Perangkat: ${ua.device}\n`
+            if (ua.os) result += `🖥️ OS: ${ua.os}\n`
+            if (ua.browser) result += `🌐 Browser: ${ua.browser}\n`
+         }
+
+         if (click.timestamp) {
+            result += `🕐 Waktu: ${new Date(click.timestamp).toLocaleString('id-ID')}\n`
+         }
+
+         if (click.referrer) {
+            result += `🔗 Referrer: ${click.referrer}\n`
+         }
+
+      } else {
+         result += `📭 Belum ada yang klik link ini.\n`
+         result += `📌 Kirim link: https://grabify.link/${code}`
+      }
+
+      await m.reply(result)
+
+   } catch (error) {
+      console.error('Trackg error:', error)
+      await m.reply(
+         `❌ Error: ${error.message}\n\n` +
+         `📌 *Cek Manual di Browser:*\n` +
+         `https://grabify.link/${code}/stats`
+      )
+   }
+         }
