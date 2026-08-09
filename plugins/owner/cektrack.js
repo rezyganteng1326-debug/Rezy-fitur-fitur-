@@ -27,6 +27,7 @@ export default {
          let result = `📊 *HASIL TRACKING*\n\n`
          result += `🔗 Kode: ${code}\n`
          result += `📌 Title: ${data.title}\n`
+         result += `📅 Dibuat: ${new Date(data.created).toLocaleString('id-ID')}\n`
          result += `🖱️ Total Klik: ${clicks.length}\n\n`
 
          if (clicks.length === 0) {
@@ -44,6 +45,26 @@ export default {
                if (click.browser) result += `   🌐 Browser: ${click.browser}\n`
                if (click.time) result += `   🕐 Waktu: ${click.time}\n`
             }
+
+            // Statistik
+            const devices = {}
+            const browsers = {}
+            for (const c of clicks) {
+               const d = c.device || 'Unknown'
+               const b = c.browser || 'Unknown'
+               devices[d] = (devices[d] || 0) + 1
+               browsers[b] = (browsers[b] || 0) + 1
+            }
+
+            result += `\n📊 *Statistik:*\n`
+            result += `📱 Perangkat:\n`
+            for (const [d, count] of Object.entries(devices)) {
+               result += `   ${d}: ${count} kali\n`
+            }
+            result += `🌐 Browser:\n`
+            for (const [b, count] of Object.entries(browsers)) {
+               result += `   ${b}: ${count} kali\n`
+            }
          }
 
          await m.reply(result)
@@ -54,4 +75,4 @@ export default {
       }
    },
    owner: true
-           }
+      }
