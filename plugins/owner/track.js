@@ -1,7 +1,7 @@
 export default {
    command: ['autolink', 'al'],
    category: 'owner',
-   description: 'Buat link tracking (target klik link, reply "udah" ke bot)',
+   description: 'Buat link tracking (target reply "udah" ke bot)',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (!text) {
@@ -12,9 +12,9 @@ export default {
                `${isPrefix}autolink https://71h.com|rejoy\n\n` +
                `📌 *Cara pakai:*\n` +
                `1. Kirim link ke target\n` +
-               `2. Target klik link (langsung ke URL tujuan)\n` +
+               `2. Target klik link\n` +
                `3. Target reply ke bot: "udah" atau "klik"\n` +
-               `4. Bot catat data\n` +
+               `4. Bot catat data (IP, device, OS, waktu)\n` +
                `5. Cek pake .ceklink [kode]`
             )
          }
@@ -42,7 +42,7 @@ export default {
             clicks: []
          }
 
-         // Bikin link pendek pake TinyURL (langsung ke URL tujuan, bukan Grabify)
+         // Bikin link pendek pake TinyURL
          let shortUrl = url
          try {
             const tinyRes = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`)
@@ -60,8 +60,8 @@ export default {
             `📌 *Title:* ${title}\n` +
             `📋 *Kode:* ${code}\n\n` +
             `📌 *Kirim link ke target!*\n` +
-            `📌 *Target klik link (langsung ke halaman tujuan)*\n` +
-            `📌 *Target reply ke bot:* "udah" atau "klik"\n\n` +
+            `📌 *Target klik link, lalu reply ke bot:*\n` +
+            `   "udah" atau "klik" atau "done"\n\n` +
             `📊 *Cek hasil:* ${isPrefix}ceklink ${code}`
          )
 
