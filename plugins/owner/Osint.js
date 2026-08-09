@@ -1,7 +1,7 @@
 export default {
    command: ['osintgacor', 'og', 'osintmax'],
    category: 'owner',
-   description: 'OSINT ULTIMATE - Provider Fix (3 Digit)',
+   description: 'OSINT ULTIMATE - Fix Telegram',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (!text) {
@@ -9,7 +9,7 @@ export default {
                `🔥 *OSINT ULTIMATE - PALING GACOR!*\n\n` +
                `📌 ${isPrefix}osintgacor 6281234567890\n\n` +
                `📊 *Data yang didapat:*\n` +
-               `✅ WhatsApp\n✅ Telegram\n✅ Truecaller\n✅ GetContact\n✅ Provider SIM\n✅ Lokasi & Koordinat\n✅ Media Sosial\n✅ Email & Username\n✅ Leak Database`
+               `✅ WhatsApp\n✅ Telegram (Fix)\n✅ Truecaller\n✅ GetContact\n✅ Provider SIM\n✅ Lokasi & Koordinat\n✅ Media Sosial\n✅ Email & Username\n✅ Leak Database`
             )
          }
 
@@ -25,7 +25,7 @@ export default {
          result += `🕐 *Waktu:* ${new Date().toLocaleString('id-ID')}\n\n`
 
          // ============================================================
-         // SEKSI 1: WHATSAPP & TELEGRAM
+         // SEKSI 1: WHATSAPP & TELEGRAM (FIX)
          // ============================================================
          result += `╭─❑ *MESSENGER*\n`
          
@@ -41,13 +41,17 @@ export default {
             result += `│ ⚠️ WhatsApp: Gagal cek\n`
          }
 
-         // Telegram
+         // Telegram (Fix: deteksi lebih akurat)
          try {
+            // Cek via web telegram (lebih akurat)
             const tgRes = await fetch(`https://t.me/${number}`, {
                headers: { 'User-Agent': 'Mozilla/5.0' }
             })
             const tgText = await tgRes.text()
-            const isTG = !tgText.includes('The username is not taken')
+            // Cek apakah ada konten profil (bukan cuma username)
+            const isTG = tgText.includes('tgme_page_photo') || 
+                         tgText.includes('tgme_page_title') ||
+                         tgText.includes('tgme_page_description')
             result += `│ ${isTG ? '✅' : '❌'} Telegram: ${isTG ? 'Ada akun' : 'Tidak ditemukan'}\n`
          } catch (e) {
             result += `│ ⚠️ Telegram: Gagal cek\n`
@@ -88,6 +92,21 @@ export default {
             } catch (e) {}
          }
 
+         // Google
+         if (!identityFound) {
+            try {
+               const gRes = await fetch(`https://www.google.com/search?q=${fullNumber}`, {
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
+               })
+               const gText = await gRes.text()
+               const gMatch = gText.match(/<h3[^>]*>([^<]+)<\/h3>/)
+               if (gMatch && gMatch[1].length < 100) {
+                  result += `│ 👤 Google: ${gMatch[1]}\n`
+                  identityFound = true
+               }
+            } catch (e) {}
+         }
+
          if (!identityFound) {
             result += `│ ❌ Nama tidak ditemukan di publik\n`
          }
@@ -95,39 +114,31 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 3: PROVIDER (FIX 3 DIGIT)
+         // SEKSI 3: PROVIDER
          // ============================================================
          result += `╭─❑ *PROVIDER & SIM CARD*\n`
 
-         // MAP PREFIX 3 DIGIT INDONESIA
          const prefixMap = {
-            // Telkomsel
             '811': 'Telkomsel', '812': 'Telkomsel', '813': 'Telkomsel',
             '814': 'Telkomsel', '815': 'Telkomsel', '816': 'Telkomsel',
             '817': 'Telkomsel', '818': 'Telkomsel', '819': 'Telkomsel',
             '821': 'Telkomsel', '822': 'Telkomsel', '823': 'Telkomsel',
             '824': 'Telkomsel', '825': 'Telkomsel', '826': 'Telkomsel',
             '827': 'Telkomsel', '828': 'Telkomsel', '829': 'Telkomsel',
-            // Axis
             '831': 'Axis', '832': 'Axis', '833': 'Axis',
             '834': 'Axis', '835': 'Axis', '836': 'Axis',
             '837': 'Axis', '838': 'Axis', '839': 'Axis',
-            // Indosat
             '851': 'Indosat', '852': 'Indosat', '853': 'Indosat',
             '854': 'Indosat', '855': 'Indosat', '856': 'Indosat',
             '857': 'Indosat', '858': 'Indosat', '859': 'Indosat',
-            // XL
             '877': 'XL', '878': 'XL', '879': 'XL',
-            // Smartfren
             '881': 'Smartfren', '882': 'Smartfren', '883': 'Smartfren',
             '884': 'Smartfren', '885': 'Smartfren', '886': 'Smartfren',
             '887': 'Smartfren', '888': 'Smartfren', '889': 'Smartfren',
-            // Tri
             '895': 'Tri', '896': 'Tri', '897': 'Tri',
             '898': 'Tri', '899': 'Tri',
          }
 
-         // Ambil 3 digit pertama setelah 62 (contoh: 895)
          const prefix = number.substring(2, 5)
          const provider = prefixMap[prefix] || 'Unknown'
 
@@ -142,7 +153,6 @@ export default {
          }
          const emoji = emojiMap[provider] || '❌'
          result += `│ ${emoji} Provider: ${provider}\n`
-         result += `│ 📌 Prefix: ${prefix}\n`
 
          // Coba ambil lokasi
          try {
@@ -195,7 +205,6 @@ export default {
          result += `╭─❑ *EMAIL & USERNAME*\n`
          let emailFound = false
 
-         // GitHub
          try {
             const ghRes = await fetch(`https://api.github.com/search/users?q=${number}`, {
                headers: { 'User-Agent': 'Mozilla/5.0' }
@@ -262,4 +271,4 @@ export default {
       }
    },
    owner: true
-            }
+}
