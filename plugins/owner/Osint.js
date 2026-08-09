@@ -1,17 +1,16 @@
 export default {
-   command: ['osintgacor,'],
+   command: ['osintgacor', 'og', 'osintmax'],
    category: 'owner',
-   description: 'OSINT ULTIMATE FIX - Provider, Nama, Leak, SIM',
+   description: 'OSINT ULTIMATE - Provider Fix Indonesia',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (!text) {
             return m.reply(
-               `🔥 *OSINT ULTIMATE FIX!*\n\n` +
+               `🔥 *OSINT ULTIMATE - PALING GACOR!*\n\n` +
                `📌 ${isPrefix}osintgacor 6281234567890\n\n` +
                `📊 *Data yang didapat:*\n` +
-               `✅ WhatsApp\n✅ Telegram\n✅ Truecaller\n✅ GetContact\n✅ Nama dari Google\n` +
-               `✅ Provider SIM (3 sumber)\n✅ Lokasi & Koordinat\n✅ Media Sosial (6 platform)\n` +
-               `✅ Email & Username\n✅ Leak Database (HIBP)\n✅ SIM Card Info`
+               `✅ WhatsApp\n✅ Telegram\n✅ Truecaller\n✅ GetContact\n✅ Provider SIM (prefix Indonesia)\n` +
+               `✅ Lokasi & Koordinat\n✅ Media Sosial (6 platform)\n✅ Email & Username\n✅ Leak Database (HIBP)`
             )
          }
 
@@ -20,9 +19,9 @@ export default {
          if (!number.startsWith('62')) number = '62' + number
          const fullNumber = '+' + number
 
-         await m.reply(`⏳ *OSINT ULTIMATE FIX* memindai ${fullNumber}...\n⏱️ Proses 2-3 menit`)
+         await m.reply(`⏳ *OSINT ULTIMATE* memindai ${fullNumber}...\n⏱️ Proses 2-3 menit`)
 
-         let result = `🔥 *OSINT ULTIMATE FIX - HASIL LENGKAP*\n\n`
+         let result = `🔥 *OSINT ULTIMATE - HASIL LENGKAP*\n\n`
          result += `📱 *Target:* ${fullNumber}\n`
          result += `🕐 *Waktu:* ${new Date().toLocaleString('id-ID')}\n\n`
 
@@ -58,12 +57,12 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 2: NAMA (Multi Source)
+         // SEKSI 2: NAMA (MULTI SOURCE)
          // ============================================================
          result += `╭─❑ *IDENTITAS & NAMA*\n`
          let identityFound = false
 
-         // Truecaller (web scrape)
+         // Truecaller
          try {
             const tcRes = await fetch(`https://www.truecaller.com/search?q=${number}`, {
                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
@@ -90,7 +89,7 @@ export default {
             } catch (e) {}
          }
 
-         // Google Search
+         // Google
          if (!identityFound) {
             try {
                const gRes = await fetch(`https://www.google.com/search?q=${fullNumber}`, {
@@ -105,26 +104,6 @@ export default {
             } catch (e) {}
          }
 
-         // Leak Database (cari nama dari leak)
-         if (!identityFound) {
-            try {
-               const leakRes = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${fullNumber}`, {
-                  headers: { 'User-Agent': 'Mozilla/5.0' }
-               })
-               if (leakRes.status === 200) {
-                  const leakData = await leakRes.json()
-                  if (leakData && leakData.length > 0) {
-                     for (const leak of leakData.slice(0, 3)) {
-                        if (leak.Name && !leak.Name.includes('http')) {
-                           result += `│ 📂 Leak: ${leak.Name}\n`
-                           identityFound = true
-                        }
-                     }
-                  }
-               }
-            } catch (e) {}
-         }
-
          if (!identityFound) {
             result += `│ ❌ Nama tidak ditemukan di publik\n`
          }
@@ -132,81 +111,47 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 3: PROVIDER & SIM CARD (FIX)
+         // SEKSI 3: PROVIDER (FIX INDONESIA)
          // ============================================================
          result += `╭─❑ *PROVIDER & SIM CARD*\n`
-         let provFound = false
+         
+         // MAP PREFIX PROVIDER INDONESIA
+         const providerMap = {
+            '0811': 'Telkomsel', '0812': 'Telkomsel', '0813': 'Telkomsel',
+            '0814': 'Telkomsel', '0815': 'Telkomsel', '0816': 'Telkomsel',
+            '0817': 'Telkomsel', '0818': 'Telkomsel', '0819': 'Telkomsel',
+            '0821': 'Telkomsel', '0822': 'Telkomsel', '0823': 'Telkomsel',
+            '0831': 'Axis', '0832': 'Axis', '0833': 'Axis',
+            '0834': 'Axis', '0835': 'Axis', '0836': 'Axis',
+            '0837': 'Axis', '0838': 'Axis', '0839': 'Axis',
+            '0851': 'Indosat', '0852': 'Indosat', '0853': 'Indosat',
+            '0854': 'Indosat', '0855': 'Indosat', '0856': 'Indosat',
+            '0857': 'Indosat', '0858': 'Indosat', '0859': 'Indosat',
+            '0877': 'XL', '0878': 'XL', '0879': 'XL',
+            '0881': 'Smartfren', '0882': 'Smartfren', '0883': 'Smartfren',
+            '0884': 'Smartfren', '0885': 'Smartfren', '0886': 'Smartfren',
+            '0887': 'Smartfren', '0888': 'Smartfren', '0889': 'Smartfren',
+            '0895': 'Tri', '0896': 'Tri', '0897': 'Tri',
+            '0898': 'Tri', '0899': 'Tri',
+         }
 
-         // Sumber 1: Abstract API (gratis)
+         const prefix = number.substring(0, 4)
+         const provider = providerMap[prefix] || 'Unknown'
+         result += `│ 📡 Provider: ${provider}\n`
+
+         // Coba ambil lokasi dari IP-API
          try {
-            const abRes = await fetch(`https://phonevalidation.abstractapi.com/v1/?api_key=YOUR_ABSTRACT_KEY&phone=${fullNumber}`, {
-               headers: { 'User-Agent': 'Mozilla/5.0' }
-            })
-            const abData = await abRes.json()
-            if (abData && abData.valid) {
-               if (abData.country) result += `│ 🌍 Negara: ${abData.country.name || abData.country}\n`
-               if (abData.operator) result += `│ 📡 Provider: ${abData.operator}\n`
-               if (abData.line_type) result += `│ 📌 Tipe: ${abData.line_type}\n`
-               if (abData.location) result += `│ 🏙️ Lokasi: ${abData.location}\n`
-               provFound = true
+            const ipRes = await fetch(`http://ip-api.com/json/${number}?fields=status,country,regionName,city,lat,lon,timezone`)
+            const ipData = await ipRes.json()
+            if (ipData && ipData.status === 'success') {
+               if (ipData.country) result += `│ 🌍 Negara: ${ipData.country}\n`
+               if (ipData.regionName) result += `│ 🗺️ Provinsi: ${ipData.regionName}\n`
+               if (ipData.city) result += `│ 🏙️ Kota: ${ipData.city}\n`
+               if (ipData.lat && ipData.lon) {
+                  result += `│ 🗺️ Koordinat: ${ipData.lat}, ${ipData.lon}\n`
+               }
             }
          } catch (e) {}
-
-         // Sumber 2: Numverify
-         if (!provFound) {
-            try {
-               const nvRes = await fetch(`http://apilayer.net/api/validate?access_key=free&number=${fullNumber}`, {
-                  headers: { 'User-Agent': 'Mozilla/5.0' }
-               })
-               const nvData = await nvRes.json()
-               if (nvData && nvData.valid) {
-                  if (nvData.country_name) result += `│ 🌍 Negara: ${nvData.country_name}\n`
-                  if (nvData.carrier) result += `│ 📡 Provider: ${nvData.carrier}\n`
-                  if (nvData.line_type) result += `│ 📌 Tipe: ${nvData.line_type}\n`
-                  provFound = true
-               }
-            } catch (e) {}
-         }
-
-         // Sumber 3: Numlookup
-         if (!provFound) {
-            try {
-               const nlRes = await fetch(`https://api.numlookup.com/validate/${number}`, {
-                  headers: { 'User-Agent': 'Mozilla/5.0' }
-               })
-               const nlData = await nlRes.json()
-               if (nlData && nlData.valid) {
-                  if (nlData.country) result += `│ 🌍 Negara: ${nlData.country}\n`
-                  if (nlData.carrier) result += `│ 📡 Provider: ${nlData.carrier}\n`
-                  if (nlData.line_type) result += `│ 📌 Tipe: ${nlData.line_type}\n`
-                  provFound = true
-               }
-            } catch (e) {}
-         }
-
-         // Sumber 4: IP-API (fallback)
-         if (!provFound) {
-            try {
-               const ipRes = await fetch(`http://ip-api.com/json/${number}?fields=status,country,regionName,city,isp,org,as,lat,lon,timezone`)
-               const ipData = await ipRes.json()
-               if (ipData && ipData.status === 'success') {
-                  if (ipData.country) result += `│ 🌍 Negara: ${ipData.country}\n`
-                  if (ipData.regionName) result += `│ 🗺️ Provinsi: ${ipData.regionName}\n`
-                  if (ipData.city) result += `│ 🏙️ Kota: ${ipData.city}\n`
-                  if (ipData.isp) result += `│ 📡 ISP: ${ipData.isp}\n`
-                  if (ipData.org) result += `│ 🏢 Organisasi: ${ipData.org}\n`
-                  if (ipData.as) result += `│ 🔢 ASN: ${ipData.as}\n`
-                  if (ipData.lat && ipData.lon) {
-                     result += `│ 🗺️ Koordinat: ${ipData.lat}, ${ipData.lon}\n`
-                  }
-                  provFound = true
-               }
-            } catch (e) {}
-         }
-
-         if (!provFound) {
-            result += `│ ❌ Gagal ambil data provider\n`
-         }
 
          result += `╰───────────────────\n\n`
 
@@ -226,8 +171,7 @@ export default {
          for (const social of socials) {
             try {
                const socRes = await fetch(social.url, { 
-                  headers: { 'User-Agent': 'Mozilla/5.0' },
-                  timeout: 5000
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
                })
                if (socRes.status === 200) {
                   result += `│ 🔗 ${social.name}: ${social.url}\n`
@@ -260,36 +204,15 @@ export default {
             }
          } catch (e) {}
 
-         // Leak Domain
-         if (!emailFound) {
-            try {
-               const leakRes = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${fullNumber}`, {
-                  headers: { 'User-Agent': 'Mozilla/5.0' }
-               })
-               if (leakRes.status === 200) {
-                  const leakData = await leakRes.json()
-                  if (leakData && leakData.length > 0) {
-                     for (const item of leakData.slice(0, 3)) {
-                        if (item.Domain) {
-                           result += `│ 📧 Domain: ${item.Domain}\n`
-                           emailFound = true
-                        }
-                     }
-                  }
-               }
-            } catch (e) {}
-         }
-
          if (!emailFound) {
             result += `│ ❌ Email/username tidak ditemukan\n`
          }
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 6: KEBOCORAN DATA (FIX)
+         // SEKSI 6: KEBOCORAN DATA
          // ============================================================
          result += `╭─❑ *KEBOCORAN DATA (LEAK)*\n`
-         let leakFound = false
          try {
             const leakRes = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${fullNumber}`, {
                headers: { 'User-Agent': 'Mozilla/5.0' }
@@ -297,25 +220,21 @@ export default {
             if (leakRes.status === 200) {
                const leakData = await leakRes.json()
                if (leakData && leakData.length > 0) {
-                  leakFound = true
                   result += `│ ⚠️ TOTAL: ${leakData.length} kebocoran!\n`
-                  const displayLeaks = leakData.slice(0, 5)
-                  for (const leak of displayLeaks) {
-                     const date = leak.BreachDate || 'Unknown'
-                     const domain = leak.Domain || 'Unknown'
-                     result += `│ 📂 ${leak.Name} (${date}) - ${leak.PwnCount || '?'} akun\n`
+                  for (const leak of leakData.slice(0, 3)) {
+                     result += `│ 📂 ${leak.Name} (${leak.BreachDate || 'Unknown'})\n`
                   }
-                  if (leakData.length > 5) {
-                     result += `│ 📂 ... dan ${leakData.length - 5} lainnya\n`
+                  if (leakData.length > 3) {
+                     result += `│ 📂 ... dan ${leakData.length - 3} lainnya\n`
                   }
+               } else {
+                  result += `│ ✅ Tidak ada kebocoran data\n`
                }
+            } else {
+               result += `│ ❌ Gagal cek kebocoran\n`
             }
          } catch (e) {
             result += `│ ❌ Error: ${e.message}\n`
-         }
-
-         if (!leakFound) {
-            result += `│ ✅ Tidak ada kebocoran data\n`
          }
          result += `╰───────────────────\n\n`
 
@@ -324,11 +243,11 @@ export default {
          // ============================================================
          result += `╭─❑ *INFO TAMBAHAN*\n`
          result += `│ 🕐 Waktu: ${new Date().toLocaleString('id-ID')}\n`
-         result += `│ 📊 Sumber: 15+ API & Scraper\n`
-         result += `│ ⚡ Status: ULTIMATE FIX\n`
+         result += `│ 📊 Sumber: 10+ API & Scraper\n`
+         result += `│ ⚡ Status: ULTIMATE GACOR\n`
          result += `╰───────────────────\n\n`
 
-         result += `🔐 *OSINT ULTIMATE FIX - Selesai!*`
+         result += `🔐 *OSINT ULTIMATE - Selesai!*`
 
          await m.reply(result)
 
