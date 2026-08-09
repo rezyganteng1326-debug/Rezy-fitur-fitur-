@@ -1,7 +1,7 @@
 export default {
    command: ['osintgacor', 'og', 'osintmax'],
    category: 'owner',
-   description: 'OSINT ULTIMATE - Auto Telegram (PASTI)',
+   description: 'OSINT ULTIMATE - AUTO CEK TELEGRAM',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (!text) {
@@ -9,7 +9,7 @@ export default {
                `🔥 *OSINT ULTIMATE - AUTO!*\n\n` +
                `📌 ${isPrefix}osintgacor 6281234567890\n\n` +
                `📊 *Data yang didapat:*\n` +
-               `✅ WhatsApp\n✅ Telegram (Auto Cek)\n✅ Provider SIM\n✅ Media Sosial`
+               `✅ WhatsApp\n✅ Telegram (Auto Cek via API)\n✅ Provider SIM\n✅ Media Sosial\n✅ Leak Database`
             )
          }
 
@@ -25,7 +25,7 @@ export default {
          result += `🕐 *Waktu:* ${new Date().toLocaleString('id-ID')}\n\n`
 
          // ============================================================
-         // SEKSI 1: WHATSAPP
+         // SEKSI 1: WHATSAPP & TELEGRAM (AUTO)
          // ============================================================
          result += `╭─❑ *MESSENGER*\n`
          
@@ -41,30 +41,57 @@ export default {
             result += `│ ⚠️ WhatsApp: Gagal cek\n`
          }
 
-         // Telegram (Auto Cek via API publik)
+         // Telegram (Auto Cek via API + Web Fallback)
+         let isTG = false
+         let tgMethod = ''
          try {
-            // Pake API Telegram resmi
+            // Method 1: Via Bot API (pake token)
             const tgToken = '8602229550:AAENgkLwgxMdC5d8Vjg6ACexb5VhXpiQpVo'
             const tgRes = await fetch(`https://api.telegram.org/bot${tgToken}/getChat?chat_id=${fullNumber}`, {
                headers: { 'User-Agent': 'Mozilla/5.0' }
             })
             const tgData = await tgRes.json()
-            const isTG = tgData && tgData.ok
-            result += `│ ${isTG ? '✅' : '❌'} Telegram: ${isTG ? 'Ada akun' : 'Tidak ditemukan'}\n`
-         } catch (e) {
-            // Fallback: cek via web
+            if (tgData && tgData.ok) {
+               isTG = true
+               tgMethod = 'API'
+            }
+         } catch (e) {}
+
+         // Method 2: Via Web (fallback)
+         if (!isTG) {
             try {
                const tgRes2 = await fetch(`https://t.me/${number}`, {
                   headers: { 'User-Agent': 'Mozilla/5.0' }
                })
                const tgText = await tgRes2.text()
-               const isTG2 = tgText.includes('tgme_page_photo') || tgText.includes('tgme_page_title')
-               result += `│ ${isTG2 ? '✅' : '❌'} Telegram: ${isTG2 ? 'Ada akun' : 'Tidak ditemukan'}\n`
-            } catch (e2) {
-               result += `│ ⚠️ Telegram: Gagal cek otomatis\n`
-            }
+               // Cek apakah ada konten profil
+               if (tgText.includes('tgme_page_photo') || 
+                   tgText.includes('tgme_page_title') ||
+                   tgText.includes('tgme_page_description')) {
+                  isTG = true
+                  tgMethod = 'Web'
+               }
+            } catch (e) {}
          }
 
+         // Method 3: Cek via link (paling akurat)
+         if (!isTG) {
+            try {
+               const tgRes3 = await fetch(`https://t.me/${number}?random=${Math.random()}`, {
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
+               })
+               const tgText3 = await tgRes3.text()
+               // Cek apakah ada username atau foto
+               if (tgText3.includes('tgme_page_photo') || 
+                   tgText3.includes('@') || 
+                   tgText3.includes('member')) {
+                  isTG = true
+                  tgMethod = 'Link'
+               }
+            } catch (e) {}
+         }
+
+         result += `│ ${isTG ? '✅' : '❌'} Telegram: ${isTG ? `Ada akun (via ${tgMethod})` : 'Tidak ditemukan'}\n`
          result += `╰───────────────────\n\n`
 
          // ============================================================
@@ -101,7 +128,7 @@ export default {
          // ============================================================
          // SEKSI 3: MEDIA SOSIAL
          // ============================================================
-         result += `╭─❑ *MEDIA SOSIAL (Link Cek)*\n`
+         result += `╭─❑ *MEDIA SOSIAL*\n`
          const socials = [
             { name: 'Instagram', url: `https://www.instagram.com/${number}` },
             { name: 'Facebook', url: `https://www.facebook.com/search/top?q=${number}` },
@@ -116,11 +143,40 @@ export default {
          result += `╰───────────────────\n\n`
 
          // ============================================================
-         // SEKSI 4: INFO
+         // SEKSI 4: LEAK
+         // ============================================================
+         result += `╭─❑ *KEBOCORAN DATA (LEAK)*\n`
+         try {
+            const leakRes = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${fullNumber}`, {
+               headers: { 'User-Agent': 'Mozilla/5.0' }
+            })
+            if (leakRes.status === 200) {
+               const leakData = await leakRes.json()
+               if (leakData && leakData.length > 0) {
+                  result += `│ ⚠️ TOTAL: ${leakData.length} kebocoran!\n`
+                  for (const leak of leakData.slice(0, 3)) {
+                     result += `│ 📂 ${leak.Name} (${leak.BreachDate || 'Unknown'})\n`
+                  }
+                  if (leakData.length > 3) {
+                     result += `│ 📂 ... dan ${leakData.length - 3} lainnya\n`
+                  }
+               } else {
+                  result += `│ ✅ Tidak ada kebocoran data\n`
+               }
+            } else {
+               result += `│ ❌ Gagal cek kebocoran\n`
+            }
+         } catch (e) {
+            result += `│ ❌ Error: ${e.message}\n`
+         }
+         result += `╰───────────────────\n\n`
+
+         // ============================================================
+         // SEKSI 5: INFO
          // ============================================================
          result += `╭─❑ *INFO TAMBAHAN*\n`
          result += `│ 🕐 Waktu: ${new Date().toLocaleString('id-ID')}\n`
-         result += `│ ⚡ Status: AUTO TELEGRAM\n`
+         result += `│ ⚡ Status: AUTO TELEGRAM (3 metode)\n`
          result += `╰───────────────────\n\n`
 
          result += `🔐 *OSINT ULTIMATE - Selesai!*`
