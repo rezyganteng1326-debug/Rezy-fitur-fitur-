@@ -1,5 +1,5 @@
 import { ApifyClient } from 'apify-client';
-import { UAParser } from 'ua-parser-js';
+import UserAgent from 'user-agents';
 
 export default {
    command: [
@@ -11,23 +11,14 @@ export default {
    description: 'Cek data nomor WA & tracking link (100% work)',
    async run(m, { sock, isPrefix, command, text }) {
       try {
-         // ============================
-         // TRACK (BUAT LINK)
-         // ============================
          if (command === 'track' || command === 'cek') {
             return await trackHandler(m, sock, isPrefix, text)
          }
 
-         // ============================
-         // CEKTRACK (LIHAT HASIL)
-         // ============================
          if (command === 'cektrack' || command === 'ct') {
             return await cekTrackHandler(m, sock, isPrefix, text)
          }
 
-         // ============================
-         // LOOKUP (DEFAULT)
-         // ============================
          await lookupHandler(m, sock, isPrefix, text)
 
       } catch (error) {
@@ -39,7 +30,7 @@ export default {
 }
 
 // ============================================================
-// HANDLER LOOKUP (CEK DATA NOMOR WA)
+// HANDLER LOOKUP
 // ============================================================
 async function lookupHandler(m, sock, isPrefix, text) {
    if (!text) {
@@ -200,7 +191,7 @@ async function lookupHandler(m, sock, isPrefix, text) {
 }
 
 // ============================================================
-// HANDLER TRACK (BUAT LINK TRACKING - 100% WORK)
+// HANDLER TRACK (BUAT LINK)
 // ============================================================
 async function trackHandler(m, sock, isPrefix, text) {
    if (!text) {
@@ -224,10 +215,8 @@ async function trackHandler(m, sock, isPrefix, text) {
       return m.reply('⚠️ URL harus dimulai dengan http:// atau https://')
    }
 
-   // Buat kode unik
    const code = Math.random().toString(36).substring(2, 8).toUpperCase()
    
-   // Simpan ke database memory
    if (!global.trackLinks) global.trackLinks = {}
    global.trackLinks[code] = {
       url: url,
@@ -251,7 +240,7 @@ async function trackHandler(m, sock, isPrefix, text) {
 }
 
 // ============================================================
-// HANDLER CEKTRACK (LIHAT HASIL TRACKING)
+// HANDLER CEKTRACK (LIHAT HASIL)
 // ============================================================
 async function cekTrackHandler(m, sock, isPrefix, text) {
    if (!text) {
@@ -283,7 +272,6 @@ async function cekTrackHandler(m, sock, isPrefix, text) {
       result += `📭 Belum ada yang klik link ini.\n`
       result += `📌 Kirim link ke target: https://grabify.link/${code}`
    } else {
-      // Tampilkan 5 klik terakhir
       const recent = clicks.slice(-5).reverse()
       result += `📋 *${recent.length} Klik Terakhir:*\n`
       
@@ -296,7 +284,6 @@ async function cekTrackHandler(m, sock, isPrefix, text) {
          if (click.time) result += `   🕐 Waktu: ${click.time}\n`
       }
 
-      // Statistik perangkat
       const devices = {}
       const browsers = {}
       for (const c of clicks) {
@@ -317,4 +304,4 @@ async function cekTrackHandler(m, sock, isPrefix, text) {
    }
 
    await m.reply(result)
-            }
+         }
