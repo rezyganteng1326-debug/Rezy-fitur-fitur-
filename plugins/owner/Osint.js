@@ -42,6 +42,11 @@ export default {
          }
 
          // Telegram MTProto (panggil Python)
+         let isTG = false
+         let tgID = ''
+         let tgName = ''
+         let tgUsername = ''
+
          try {
             const { exec } = await import('child_process')
             const { promisify } = await import('util')
@@ -55,18 +60,38 @@ export default {
             } else {
                const parts = stdout.trim().split('|')
                if (parts[0] === '✅') {
-                  result += `│ ✅ Telegram: Ada akun\n`
-                  if (parts[1] && parts[1] !== '0') result += `│    🆔 ID: ${parts[1]}\n`
-                  if (parts[2]) result += `│    👤 Nama: ${parts[2]}\n`
-                  if (parts[3]) result += `│    @${parts[3]}\n`
-               } else if (parts[0] === '⏳') {
-                  result += `│ ⏳ Telegram: Kena limit (tunggu ${parts[1] || 'beberapa'} detik)\n`
-               } else {
-                  result += `│ ❌ Telegram: Tidak ditemukan\n`
+                  isTG = true
+                  tgID = parts[1] || ''
+                  tgName = parts[2] || ''
+                  tgUsername = parts[3] || ''
                }
             }
          } catch (e) {
             result += `│ ❌ Telegram: Gagal (${e.message})\n`
+         }
+
+         // Fallback: Cek via Web (kalo MTProto gagal)
+         if (!isTG) {
+            try {
+               const tgRes = await fetch(`https://t.me/${number}`, {
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
+               })
+               const tgText = await tgRes.text()
+               if (tgText.includes('tgme_page_photo') || tgText.includes('tgme_page_title')) {
+                  isTG = true
+                  const titleMatch = tgText.match(/<meta property="og:title" content="([^"]+)"/)
+                  if (titleMatch) tgName = titleMatch[1]
+               }
+            } catch (e) {}
+         }
+
+         if (isTG) {
+            result += `│ ✅ Telegram: Ada akun\n`
+            if (tgID && tgID !== '0') result += `│    🆔 ID: ${tgID}\n`
+            if (tgName) result += `│    👤 Nama: ${tgName}\n`
+            if (tgUsername) result += `│    @${tgUsername}\n`
+         } else {
+            result += `│ ❌ Telegram: Tidak ditemukan\n`
          }
 
          result += `╰───────────────────\n\n`
@@ -166,4 +191,4 @@ export default {
       }
    },
    owner: true
-            }
+      }
