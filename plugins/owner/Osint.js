@@ -42,34 +42,40 @@ export default {
          }
 
          // Telegram MTProto (panggil Python)
-         let isTG = false
-         let tgID = ''
-         let tgName = ''
-         let tgUsername = ''
+let isTG = false
+let tgID = ''
+let tgName = ''
+let tgUsername = ''
 
-         try {
-            const { exec } = await import('child_process')
-            const { promisify } = await import('util')
-            const execAsync = promisify(exec)
-            
-            const { stdout, stderr } = await execAsync(`python3 ~/osint-tools/cek_telegram.py ${number}`)
-            
-            if (stderr && !stderr.includes('Warning')) {
-               result += `│ ⚠️ Telegram: Gagal cek\n`
-               console.log('MTProto Error:', stderr)
-            } else {
-               const parts = stdout.trim().split('|')
-               if (parts[0] === '✅') {
-                  isTG = true
-                  tgID = parts[1] || ''
-                  tgName = parts[2] || ''
-                  tgUsername = parts[3] || ''
-               }
-            }
-         } catch (e) {
-            result += `│ ❌ Telegram: Gagal (${e.message})\n`
-         }
-
+try {
+   const { exec } = await import('child_process')
+   const { promisify } = await import('util')
+   const execAsync = promisify(exec)
+   
+   // PAKE PATH ABSOLUT
+   const pythonPath = '/data/data/com.termux/files/usr/bin/python3'
+   const scriptPath = '/data/data/com.termux/files/home/osint-tools/cek_telegram.py'
+   
+   const { stdout, stderr } = await execAsync(`${pythonPath} ${scriptPath} ${number}`)
+   
+   console.log('MTProto stdout:', stdout)
+   console.log('MTProto stderr:', stderr)
+   
+   if (stderr && !stderr.includes('Warning')) {
+      result += `│ ⚠️ Telegram: Gagal cek\n`
+   } else {
+      const parts = stdout.trim().split('|')
+      if (parts[0] === '✅') {
+         isTG = true
+         tgID = parts[1] || ''
+         tgName = parts[2] || ''
+         tgUsername = parts[3] || ''
+      }
+   }
+} catch (e) {
+   result += `│ ❌ Telegram: Gagal (${e.message})\n`
+}
+         
          // Fallback: Cek via Web (kalo MTProto gagal)
          if (!isTG) {
             try {
