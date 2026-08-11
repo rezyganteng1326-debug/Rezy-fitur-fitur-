@@ -1,15 +1,15 @@
 export default {
    command: ['osintgacor', 'og', 'osintmax'],
    category: 'owner',
-   description: 'OSINT ULTIMATE - AUTO CEK TELEGRAM',
+   description: 'OSINT ULTIMATE - MTProto Telegram (100% Akurat)',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (!text) {
             return m.reply(
-               `🔥 *OSINT ULTIMATE - AUTO!*\n\n` +
+               `🔥 *OSINT ULTIMATE - PALING GACOR!*\n\n` +
                `📌 ${isPrefix}osintgacor 6281234567890\n\n` +
                `📊 *Data yang didapat:*\n` +
-               `✅ WhatsApp\n✅ Telegram (Auto Cek via API)\n✅ Provider SIM\n✅ Media Sosial\n✅ Leak Database`
+               `✅ WhatsApp\n✅ Telegram (MTProto - 100% Akurat)\n✅ Provider SIM\n✅ Media Sosial\n✅ Leak Database`
             )
          }
 
@@ -25,7 +25,7 @@ export default {
          result += `🕐 *Waktu:* ${new Date().toLocaleString('id-ID')}\n\n`
 
          // ============================================================
-         // SEKSI 1: WHATSAPP & TELEGRAM (AUTO)
+         // SEKSI 1: WHATSAPP & TELEGRAM (MTProto)
          // ============================================================
          result += `╭─❑ *MESSENGER*\n`
          
@@ -41,57 +41,34 @@ export default {
             result += `│ ⚠️ WhatsApp: Gagal cek\n`
          }
 
-         // Telegram (Auto Cek via API + Web Fallback)
-         let isTG = false
-         let tgMethod = ''
+         // Telegram MTProto (panggil Python)
          try {
-            // Method 1: Via Bot API (pake token)
-            const tgToken = '8602229550:AAENgkLwgxMdC5d8Vjg6ACexb5VhXpiQpVo'
-            const tgRes = await fetch(`https://api.telegram.org/bot${tgToken}/getChat?chat_id=${fullNumber}`, {
-               headers: { 'User-Agent': 'Mozilla/5.0' }
-            })
-            const tgData = await tgRes.json()
-            if (tgData && tgData.ok) {
-               isTG = true
-               tgMethod = 'API'
+            const { exec } = await import('child_process')
+            const { promisify } = await import('util')
+            const execAsync = promisify(exec)
+            
+            const { stdout, stderr } = await execAsync(`python3 ~/osint-tools/cek_telegram.py ${number}`)
+            
+            if (stderr && !stderr.includes('Warning')) {
+               result += `│ ⚠️ Telegram: Gagal cek\n`
+               console.log('MTProto Error:', stderr)
+            } else {
+               const parts = stdout.trim().split('|')
+               if (parts[0] === '✅') {
+                  result += `│ ✅ Telegram: Ada akun\n`
+                  if (parts[1] && parts[1] !== '0') result += `│    🆔 ID: ${parts[1]}\n`
+                  if (parts[2]) result += `│    👤 Nama: ${parts[2]}\n`
+                  if (parts[3]) result += `│    @${parts[3]}\n`
+               } else if (parts[0] === '⏳') {
+                  result += `│ ⏳ Telegram: Kena limit (tunggu ${parts[1] || 'beberapa'} detik)\n`
+               } else {
+                  result += `│ ❌ Telegram: Tidak ditemukan\n`
+               }
             }
-         } catch (e) {}
-
-         // Method 2: Via Web (fallback)
-         if (!isTG) {
-            try {
-               const tgRes2 = await fetch(`https://t.me/${number}`, {
-                  headers: { 'User-Agent': 'Mozilla/5.0' }
-               })
-               const tgText = await tgRes2.text()
-               // Cek apakah ada konten profil
-               if (tgText.includes('tgme_page_photo') || 
-                   tgText.includes('tgme_page_title') ||
-                   tgText.includes('tgme_page_description')) {
-                  isTG = true
-                  tgMethod = 'Web'
-               }
-            } catch (e) {}
+         } catch (e) {
+            result += `│ ❌ Telegram: Gagal (${e.message})\n`
          }
 
-         // Method 3: Cek via link (paling akurat)
-         if (!isTG) {
-            try {
-               const tgRes3 = await fetch(`https://t.me/${number}?random=${Math.random()}`, {
-                  headers: { 'User-Agent': 'Mozilla/5.0' }
-               })
-               const tgText3 = await tgRes3.text()
-               // Cek apakah ada username atau foto
-               if (tgText3.includes('tgme_page_photo') || 
-                   tgText3.includes('@') || 
-                   tgText3.includes('member')) {
-                  isTG = true
-                  tgMethod = 'Link'
-               }
-            } catch (e) {}
-         }
-
-         result += `│ ${isTG ? '✅' : '❌'} Telegram: ${isTG ? `Ada akun (via ${tgMethod})` : 'Tidak ditemukan'}\n`
          result += `╰───────────────────\n\n`
 
          // ============================================================
@@ -176,7 +153,7 @@ export default {
          // ============================================================
          result += `╭─❑ *INFO TAMBAHAN*\n`
          result += `│ 🕐 Waktu: ${new Date().toLocaleString('id-ID')}\n`
-         result += `│ ⚡ Status: AUTO TELEGRAM (3 metode)\n`
+         result += `│ ⚡ Status: MTProto TELEGRAM\n`
          result += `╰───────────────────\n\n`
 
          result += `🔐 *OSINT ULTIMATE - Selesai!*`
@@ -189,4 +166,4 @@ export default {
       }
    },
    owner: true
-}
+            }
