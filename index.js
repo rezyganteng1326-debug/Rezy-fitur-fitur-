@@ -4,6 +4,10 @@ dotenv.config()
 import { spawn } from 'child_process'
 import { fileURLToPath } from 'url'
 
+// ===== TAMBAHKAN INI (Cuma 1 baris) =====
+import { startAllDevices } from './socket.js'
+// =========================================
+
 const SETUP_PATH = fileURLToPath(
    new URL('./socket.js', import.meta.url)
 )
@@ -15,11 +19,6 @@ const [MAJOR, MINOR, PATCH] = process.versions.node
 const Banner = () => {
    console.log('\x1Bc')
 
-   /**
-    * Banner characters derived from the "tiny" font by cfonts.
-    * Credit to the original authors:
-    * https://github.com/dominikwilkowski/cfonts/blob/released/fonts/tiny.json
-    */
    const banner = [
       '█▀▀ ▀█▀ ▄▀█ █▀█ █▀▀ █▀▀ █▀▀ █▀▄',
       '▄▄█  █  █▀█ █▀▄ ▄▄█ ██▄ ██▄ █▄▀'
@@ -38,31 +37,31 @@ const Banner = () => {
    console.log('\n' + toCenter(footer))
 }
 
+// ===== FUNGSI START YANG BARU =====
 const Start = () => {
-   const instance = spawn(process.execPath, [
-      ...process.execArgv,
-      SETUP_PATH,
-      ...process.argv.slice(2)
-   ], {
-      stdio: ['inherit', 'inherit', 'inherit', 'ipc']
-   })
+   // TAMPILKAN BANNER DULU
+   Banner()
+   
+   // CEK VERSI NODE
+   if (MAJOR < 20 || (MAJOR == 20 && MINOR < 18) || (MAJOR == 20 && MINOR == 18 && PATCH < 1)) {
+      console.error(
+         `\n❌ This script requires Node.js 20.18.1 or above to run reliably.\n` +
+         `   You are using Node.js ${process.versions.node}.\n` +
+         `   Please upgrade to Node.js 20.18.1 or above to proceed.\n`
+      )
+      process.exit(1)
+   }
 
-   instance.once('message', (data) => {
-      if (data === 'leak' || data === 'reset') {
-         console[data === 'leak' ? 'error' : 'log'](
-            data === 'leak'
-               ? '⚠️ RAM limit reached, restarting...'
-               : '🔃 Restarting...'
-         )
-         instance.kill('SIGTERM')
-      }
+   // ===== JALANKAN MULTI DEVICE =====
+   startAllDevices().catch((error) => {
+      console.error('❌ Error fatal:', error)
+      console.log('🔄 Restart dalam 5 detik...')
+      setTimeout(Start, 5000) // Auto-restart jika error
    })
+}
 
-   instance.once('error', (error) => {
-      console.error('❌ Unexpected error occurred when starting the bot:', error)
-   })
-
-   instance.once('exit', (code) => {
+// JALANKAN
+Start()
       console.error(`⚠️ Exited with code ${code}`)
 
       cleanUp(instance)
