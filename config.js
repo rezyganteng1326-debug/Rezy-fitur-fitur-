@@ -7,7 +7,7 @@ Object.assign(globalThis, {
 
   devices: [
     { id: 'device1', name: 'Bot Utama', number: '6285649934909' },
-    { id: 'device1', name: 'Bot Utama', number: '' },
+    { id: 'device1', name: 'Bot Utama', number: '6289525408623' },
 ],
 
    ownerName: 'Rezy', // ganti inii 
