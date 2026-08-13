@@ -3,10 +3,7 @@ dotenv.config()
 
 import { spawn } from 'child_process'
 import { fileURLToPath } from 'url'
-
-// ===== TAMBAHKAN INI (Cuma 1 baris) =====
 import { startAllDevices } from './socket.js'
-// =========================================
 
 const SETUP_PATH = fileURLToPath(
    new URL('./socket.js', import.meta.url)
@@ -37,12 +34,9 @@ const Banner = () => {
    console.log('\n' + toCenter(footer))
 }
 
-// ===== FUNGSI START YANG BARU =====
 const Start = () => {
-   // TAMPILKAN BANNER DULU
    Banner()
    
-   // CEK VERSI NODE
    if (MAJOR < 20 || (MAJOR == 20 && MINOR < 18) || (MAJOR == 20 && MINOR == 18 && PATCH < 1)) {
       console.error(
          `\n❌ This script requires Node.js 20.18.1 or above to run reliably.\n` +
@@ -52,15 +46,13 @@ const Start = () => {
       process.exit(1)
    }
 
-   // ===== JALANKAN MULTI DEVICE =====
    startAllDevices().catch((error) => {
       console.error('❌ Error fatal:', error)
       console.log('🔄 Restart dalam 5 detik...')
-      setTimeout(Start, 5000) // Auto-restart jika error
+      setTimeout(Start, 5000)
    })
 }
 
-// JALANKAN
 Start()
       console.error(`⚠️ Exited with code ${code}`)
 
