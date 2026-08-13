@@ -7,13 +7,14 @@ Object.assign(globalThis, {
 
   devices: [
     { id: 'device1', name: 'Bot Utama', number: '6285649934909' },
+    { id: 'device1', name: 'Bot Utama', number: '' },
 ],
 
    ownerName: 'Rezy', // ganti inii 
    ownerNumber: '62xxx', // ganti ini nomor owner 
    botName: 'Rezybotwawa', // ganti 
    footer: '🍃 apanyak', // ganti 
-   botNumber: '6289525408623', // ganti ini nomor mu bot 
+   botNumber: '6285649934909', // ganti ini nomor mu bot 
 
    pairingCode: false, // ga usah gnti 
 
