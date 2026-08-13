@@ -1,38 +1,23 @@
-// config.js - Tambahkan ini
-const { LRUCache } = require('lru-cache')
-const { cpus } = require('os')
+import { LRUCache } from 'lru-cache'
+import { cpus } from 'os'
 
 const CPU_COUNT = cpus().length
 
-// ===== TAMBAHKAN INI =====
-const devices = [
-    { id: 'device1', name: 'Bot Utama', number: '6285649934909' },
-    { id: 'device2', name: 'Bot Cadangan', number: '6289525408623' } // Ganti nomor ke-2
-]
-// ==========================
-
 Object.assign(globalThis, {
-    ownerName: 'Rezyganteng',
-    ownerNumber: '628123456789', // Ganti nomor owner
-    botName: 'RezyBotwawa',
-    footer: '🍃 bot wawa',
-    botNumber: '6285649934909', // Nomor utama
-    
-    // ===== TAMBAHKAN INI =====
-    devices: devices,
-    activeDevices: devices.map(d => d.id),
-    // ==========================
-    
-    pairingCode: true,
-    defaultLimit: 15,
-    // ... sisanya tetap sama
-})
+
+   ownerName: '𝑣𝑖𝑡𝑎 - 𝑖𝑚𝑢𝑡', // ganti inii 
+   ownerNumber: '62xxx', // ganti ini nomor owner 
+   botName: '𝗒𝗎𝗄𝗂 𝖨𝗍𝗈𝗌𝖾', // ganti 
+   footer: '🍃 𝗒𝗎𝗄𝗂 𝖨𝗍𝗈𝗌𝖾', // ganti 
+   botNumber: '62xxx', // ganti ini nomor mu bot 
+
+   pairingCode: true, // ga usah gnti 
 
    defaultLimit: 15,
 
    stickerPackName: '𝗂𝗇𝗌𝗍𝖺𝗀𝗋𝖺𝗆', // bebas gnti atau tidak
 
-   stickerPackPublisher: '@Rezy', // bebas gnti atau tidak 
+   stickerPackPublisher: '@𝖿𝗂𝗍𝗒𝖺_𝗍𝖺𝖺', // bebas gnti atau tidak 
 
    googleApiKey: '', // apikey mu sendiri di gemini 
 
