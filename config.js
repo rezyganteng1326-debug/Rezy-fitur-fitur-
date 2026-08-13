@@ -1,17 +1,32 @@
-import { LRUCache } from 'lru-cache'
-import { cpus } from 'os'
+// config.js - Tambahkan ini
+const { LRUCache } = require('lru-cache')
+const { cpus } = require('os')
 
 const CPU_COUNT = cpus().length
 
+// ===== TAMBAHKAN INI =====
+const devices = [
+    { id: 'device1', name: 'Bot Utama', number: '6285649934909' },
+    { id: 'device2', name: 'Bot Cadangan', number: '6289525408623' } // Ganti nomor ke-2
+]
+// ==========================
+
 Object.assign(globalThis, {
-
-   ownerName: 'Rezyganteng', // ganti inii 
-   ownerNumber: '62xxx', // ganti ini nomor owner 
-   botName: 'RezyBotwawa', // ganti 
-   footer: '🍃 bot wawa', // ganti 
-   botNumber: '6285649934909', // ganti ini nomor mu bot 
-
-   pairingCode: true, // ga usah gnti 
+    ownerName: 'Rezyganteng',
+    ownerNumber: '628123456789', // Ganti nomor owner
+    botName: 'RezyBotwawa',
+    footer: '🍃 bot wawa',
+    botNumber: '6285649934909', // Nomor utama
+    
+    // ===== TAMBAHKAN INI =====
+    devices: devices,
+    activeDevices: devices.map(d => d.id),
+    // ==========================
+    
+    pairingCode: true,
+    defaultLimit: 15,
+    // ... sisanya tetap sama
+})
 
    defaultLimit: 15,
 
