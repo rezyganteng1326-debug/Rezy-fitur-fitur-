@@ -1,4 +1,4 @@
-import './config.js'  // ← HARUS ADA!
+import './config.js'
 import {
   makeWASocket,
   useMultiFileAuthState,
@@ -12,12 +12,14 @@ import { mkdir } from 'fs/promises';
 
 const logger = pino({ level: 'silent' });
 
-// ===== FUNGSI UNTUK MULTI DEVICE =====
+// ===== DELAY FUNCTION =====
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 async function startDevice(deviceConfig) {
-    // ✅ AMBIL DARI deviceConfig
     const { id, name, number } = deviceConfig;
 
-    // Buat folder session per device
+    console.log(`📱 [${id}] Menyiapkan ${name}...`);
+
     const authFolder = join(process.cwd(), `session_${id}`);
     await mkdir(authFolder, { recursive: true });
 
@@ -29,58 +31,36 @@ async function startDevice(deviceConfig) {
             creds: state.creds,
             keys: makeCacheableSignalKeyStore(state.keys)
         },
-        printQRInTerminal: !global.pairingCode,
+        printQRInTerminal: false,
         browser: [name, 'Chrome', '120.0.0.0']
     });
 
     // ===== PAIRING CODE =====
-    if (global.pairingCode && !state.creds.registered) {
-        const pairingCode = await sock.requestPairingCode(number);
-        console.log(`📱 [${id}] Kode Pairing: ${pairingCode}`);
-        console.log(`📱 [${id}] Masukkan kode di WhatsApp > Perangkat Tertaut > Tautkan dengan Kode`);
-    }
-
-    // ===== EVENT: Pesan Masuk =====
-    sock.ev.on('messages.upsert', async (m) => {
-        const msg = m.messages[0];
-        if (msg.key.fromMe) return;
-
+    if (!state.creds.registered) {
+        console.log(`📱 [${id}] Meminta kode pairing untuk ${number}...`);
+        
         try {
-            const pesan = msg.message?.conversation || 
-                          msg.message?.extendedTextMessage?.text || '';
-            const dari = msg.key.remoteJid;
-
-            // ===== LOGIKA BOT =====
-            let jawaban = '';
-            if (pesan.toLowerCase().includes('halo')) {
-                jawaban = `Halo! Saya ${name}`;
-            } else if (pesan.toLowerCase().includes('help')) {
-                jawaban = 'Ada yang bisa saya bantu?';
-            } else if (pesan.toLowerCase().includes('ping')) {
-                jawaban = 'Pong! 🏓';
-            } else {
-                jawaban = 'Ketik "help" untuk bantuan';
-            }
-            // =======================
-
-            await sock.sendMessage(dari, { text: jawaban });
-            console.log(`[${id}] Balas ke ${dari}: ${jawaban}`);
-
+            await delay(2000); // Tunggu 2 detik
+            const pairingCode = await sock.requestPairingCode(number);
+            console.log(`\n✅ [${id}] KODE PAIRING: ${pairingCode}\n`);
+            console.log(`📱 [${id}] Buka WhatsApp > Perangkat Tertaut > Tautkan dengan Kode`);
+            console.log(`📱 [${id}] Masukkan kode: ${pairingCode}\n`);
         } catch (err) {
-            console.error(`[${id}] Error:`, err.message);
+            console.error(`❌ [${id}] Gagal dapat pairing code:`, err.message);
+            console.log(`📱 [${id}] Coba jalankan ulang dalam 5 detik...`);
+            await delay(5000);
+            return startDevice(deviceConfig);
         }
-    });
-
-    // ===== EVENT: Simpan Creds =====
-    sock.ev.on('creds.update', saveCreds);
+    }
 
     // ===== EVENT: Koneksi =====
     sock.ev.on('connection.update', async (update) => {
-        // ✅ AMBIL DARI update
         const { connection, lastDisconnect } = update;
 
         if (connection === 'open') {
             console.log(`✅ [${id}] ${name} siap!`);
+            if (!global.sockMap) global.sockMap = {};
+            global.sockMap[id] = sock;
         }
 
         if (connection === 'close') {
@@ -89,14 +69,12 @@ async function startDevice(deviceConfig) {
                 console.log(`🔄 [${id}] Koneksi putus, mencoba ulang...`);
                 setTimeout(() => startDevice(deviceConfig), 3000);
             } else {
-                console.log(`❌ [${id}] Session expired, pairing ulang.`);
+                console.log(`❌ [${id}] Session expired. Hapus folder session_${id} dan restart.`);
             }
         }
     });
 
-    // ✅ Simpan socket ke global untuk plugin spam
-    if (!global.sockMap) global.sockMap = {};
-    global.sockMap[id] = sock;
+    sock.ev.on('creds.update', saveCreds);
 
     return sock;
 }
@@ -112,15 +90,14 @@ async function startAllDevices() {
 
     console.log(`🚀 Menjalankan ${devices.length} bot...\n`);
 
-    // ✅ ISI promises dengan startDevice
-    const promises = devices.map(device => {
+    // Jalankan satu per satu (biar ga bentrok)
+    for (const device of devices) {
         console.log(`📱 Memulai ${device.name} (${device.id})...`);
-        return startDevice(device);
-    });
+        await startDevice(device);
+        await delay(3000); // Jeda 3 detik antar device
+    }
 
-    await Promise.all(promises);
     console.log('\n✅ Semua bot aktif!');
 }
 
-// ===== EKSPOR =====
 export { startAllDevices, startDevice };
