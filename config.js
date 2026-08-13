@@ -15,7 +15,7 @@ Object.assign(globalThis, {
    footer: '🍃 apanyak', // ganti 
    botNumber: '6289525408623', // ganti ini nomor mu bot 
 
-   pairingCode: true, // ga usah gnti 
+   pairingCode: false, // ga usah gnti 
 
    defaultLimit: 15,
 
