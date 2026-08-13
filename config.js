@@ -5,18 +5,13 @@ const CPU_COUNT = cpus().length
 
 Object.assign(globalThis, {
 
-  devices: [
-    { id: 'device1', name: 'Bot Utama', number: '6285649934909' },
-    { id: 'device1', name: 'Bot Utama', number: '6289525408623' },
-],
-
-   ownerName: 'Rezy', // ganti inii 
+   ownerName: '𝑣𝑖𝑡𝑎 - 𝑖𝑚𝑢𝑡', // ganti inii 
    ownerNumber: '62xxx', // ganti ini nomor owner 
-   botName: 'Rezybotwawa', // ganti 
-   footer: '🍃 apanyak', // ganti 
+   botName: '𝗒𝗎𝗄𝗂 𝖨𝗍𝗈𝗌𝖾', // ganti 
+   footer: '🍃 𝗒𝗎𝗄𝗂 𝖨𝗍𝗈𝗌𝖾', // ganti 
    botNumber: '6285649934909', // ganti ini nomor mu bot 
 
-   pairingCode: false, // ga usah gnti 
+   pairingCode: true, // ga usah gnti 
 
    defaultLimit: 15,
 
