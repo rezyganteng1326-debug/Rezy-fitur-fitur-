@@ -5,6 +5,11 @@ const CPU_COUNT = cpus().length
 
 Object.assign(globalThis, {
 
+  devices: [
+    { id: 'device1', name: 'Bot Utama', number: '6285649934909' },
+    { id: 'device2', name: 'Bot Cadangan', number: '6289525408623' }
+],
+
    ownerName: 'Rezy', // ganti inii 
    ownerNumber: '62xxx', // ganti ini nomor owner 
    botName: 'Rezybotwawa', // ganti 
