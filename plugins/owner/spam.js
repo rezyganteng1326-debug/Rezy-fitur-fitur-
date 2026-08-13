@@ -1,7 +1,7 @@
 export default {
    command: ['spam', 'spammsg'],
    category: 'owner',
-   description: 'Kirim pesan berulang (auto retry kalo gagal)',
+   description: 'Kirim pesan berulang (2 nomor bergantian)',
    async run(m, { sock, isPrefix, command, text }) {
       try {
          if (!text) {
@@ -39,37 +39,42 @@ export default {
             msg = parts.slice(1).join('|').trim()
          }
 
-         // Batas 1000 (sesuai request)
+         // Batas 1000
          if (count > 1000) return m.reply('⚠️ Maksimal 1000 pesan.')
          if (count < 1) return m.reply('⚠️ Jumlah minimal 1.')
          if (!msg) return m.reply('⚠️ Pesan kosong.')
 
-         await m.reply(`⏳ Mengirim ${count} pesan... (butuh ±${count * 2} detik)`)
+         // ===== AMBIL SEMUA DEVICE =====
+         const devices = global.devices || []
+         if (devices.length < 2) {
+            return m.reply('⚠️ Butuh minimal 2 device di config!')
+         }
+
+         await m.reply(`⏳ Mengirim ${count} pesan dari ${devices.length} nomor...`)
 
          let berhasil = 0
          let gagal = 0
+         let deviceIndex = 0
          const gagalList = []
 
+         // ===== LOOPING SPAM =====
          for (let i = 0; i < count; i++) {
+            // Pilih device bergantian (round-robin)
+            const currentDevice = devices[deviceIndex % devices.length]
+            deviceIndex++
+
             try {
-               await sock.sendMessage(target, { text: msg })
+               // Kirim dari device yang dipilih
+               await global.sockMap?.[currentDevice.id]?.sendMessage(target, { text: msg })
                berhasil++
-               await new Promise(resolve => setTimeout(resolve, 100)) // 2 detik
             } catch (e) {
                gagal++
                gagalList.push(i + 1)
-               console.log(`Pesan ke-${i+1} gagal:`, e.message)
-               
-               // Coba ulang 1x kalo gagal
-               try {
-                  await sock.sendMessage(target, { text: msg })
-                  berhasil++
-                  gagal--
-                  gagalList.pop()
-               } catch (e2) {
-                  console.log(`Retry ke-${i+1} tetap gagal`)
-               }
+               console.log(`[${currentDevice.id}] Pesan ke-${i+1} gagal:`, e.message)
             }
+
+            // Jeda 1 detik
+            await new Promise(resolve => setTimeout(resolve, 1000))
          }
 
          let pesanHasil = `✅ Selesai!\n\n📨 Berhasil: ${berhasil} pesan\n❌ Gagal: ${gagal} pesan`
@@ -85,4 +90,4 @@ export default {
       }
    },
    owner: true
-                  }
+         }
